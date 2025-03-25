@@ -1,3 +1,4 @@
+import React from 'react';
 import './MatchCard.css';
 
 export default function MatchCard({ match, value = {}, onChange }) {

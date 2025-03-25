@@ -1,4 +1,5 @@
 console.log('App loaded');
+import React from 'react';
 import { useEffect, useState } from 'react';
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
@@ -53,7 +54,7 @@ function App() {
                         key={match.id}
                         match={match}
                         value={predictions[match.id]}
-                        onChange={handleScoreChange}
+                        onChange={(field, value) => handleScoreChange(match.id, field, value)}
                     />
                 ))}
             </div>
