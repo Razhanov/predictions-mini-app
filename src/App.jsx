@@ -1,17 +1,19 @@
-console.log('App loaded');
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { useMatches} from "./hooks/useMatches.js";
+console.log('useMatches ===>', useMatches);
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
 
 const tg = window.Telegram.WebApp;
 
-const dummyMatches = [
-    { id: "1", teamA: 'Arsenal', teamB: 'Chelsea' },
-    { id: "2", teamA: 'Barcelona', teamB: 'Real Madrid' }
-];
+// const dummyMatches = [
+//     { id: "1", teamA: 'Arsenal', teamB: 'Chelsea' },
+//     { id: "2", teamA: 'Barcelona', teamB: 'Real Madrid' }
+// ];
 
 function App() {
+    const { matches, loading } = useMatches();
     const [predictions, setPredictions] = useState({});
 
     useEffect(() => {
@@ -49,7 +51,7 @@ function App() {
         <div className="container">
             <h1 className="title">Прогнозы на матчи</h1>
             <div className="match-list">
-                {dummyMatches.map((match) => (
+                {matches.map((match) => (
                     <MatchCard
                         key={match.id}
                         match={match}
