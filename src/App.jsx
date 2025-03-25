@@ -1,27 +1,62 @@
+console.log('App loaded');
 import { useEffect, useState } from 'react';
-import { db} from "./firebase/config.js";
-import { collection, getDocs } from "./firebase/firestore.js";
+import MatchCard from "./components/MatchCard.jsx";
+import './App.css'
+
+const tg = window.Telegram.WebApp;
+
+const dummyMatches = [
+    { id: "1", teamA: 'Arsenal', teamB: 'Chelsea' },
+    { id: "2", teamA: 'Barcelona', teamB: 'Real Madrid' }
+];
 
 function App() {
-    const [matches, setMatches] = useState([]);
+    const [predictions, setPredictions] = useState({});
 
     useEffect(() => {
-        const fetchMatches = async () => {
-            const querySnapshot = await getDocs(collection(db, "matches"));
-            const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data()}));
-            setMatches(data);
+        tg.ready();
+        tg.expand();
+
+        tg.MainButton.setParams({ text: 'Сохранить прогнозы' });
+
+        if (Object.keys(predictions).length > 0) {
+            tg.MainButton.show();
+        } else {
+            tg.MainButton.hide();
+        }
+
+        tg.MainButton.onClick(() => {
+            tg.sendData(JSON.stringify(predictions));
+        });
+
+        return () => {
+            tg.MainButton.offClick();
         };
-        fetchMatches();
-    }, []);
+    }, [predictions]);
+
+    const handleScoreChange = (matchId, field, value) => {
+        setPredictions(prev => ({
+            ...prev,
+            [matchId]: {
+                ...prev[matchId],
+                [field]: value
+            }
+        }));
+    }
 
     return (
-        <div>
-            <h1>Прогнозы на матчи</h1>
-            {matches.map(match => (
-                <div key={match.id}>
-                    {match.teamA} vs {match.teamB}
-                </div>
-            ))}
+        <div className="container">
+            <h1 className="title">Прогнозы на матчи</h1>
+            <div className="match-list">
+                {dummyMatches.map((match) => (
+                    <MatchCard
+                        key={match.id}
+                        match={match}
+                        value={predictions[match.id]}
+                        onChange={handleScoreChange}
+                    />
+                ))}
+            </div>
         </div>
     );
 }
