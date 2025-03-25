@@ -14,7 +14,14 @@ export function useMatches() {
                     id: doc.id,
                     ...doc.data()
                 }));
-                setMatches(data);
+
+                const sortedMatches = data.sort((a, b) => {
+                    const dateA = a.date?.seconds || 0;
+                    const dateB = b.date?.seconds || 0;
+                    return dateA - dateB;
+                });
+
+                setMatches(sortedMatches);
                 setLoading(false);
             } catch (err) {
                 console.error("Ошибка загрузки матчей:", err);

@@ -50,16 +50,26 @@ function App() {
     return (
         <div className="container">
             <h1 className="title">Прогнозы на матчи</h1>
-            <div className="match-list">
-                {matches.map((match) => (
-                    <MatchCard
-                        key={match.id}
-                        match={match}
-                        value={predictions[match.id]}
-                        onChange={(field, value) => handleScoreChange(match.id, field, value)}
-                    />
-                ))}
-            </div>
+            {loading && <p>Загрузка матчей...</p>}
+
+            {!loading && matches.length === 0 && (
+                <p style={{ textAlign: 'center', color: '#777' }}>
+                    Матчи скоро появятся ⚽️
+                </p>
+            )}
+
+            {!loading && matches.length > 0 && (
+                <div className="match-list">
+                    {matches.map((match) => (
+                        <MatchCard
+                            key={match.id}
+                            match={match}
+                            value={predictions[match.id]}
+                            onChange={(field, value) => handleScoreChange(match.id, field, value)}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
