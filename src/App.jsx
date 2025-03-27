@@ -1,7 +1,8 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { useMatches} from "./hooks/useMatches.js";
-console.log('useMatches ===>', useMatches);
+import { useMatches } from "./hooks/useMatches.js";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from './firebase/config.js';
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
 
@@ -28,8 +29,36 @@ function App() {
             tg.MainButton.hide();
         }
 
-        tg.MainButton.onClick(() => {
-            tg.sendData(JSON.stringify(predictions));
+        tg.MainButton.onClick(async () => {
+            const userId = tg.initDataUnsafe?.user?.id;
+
+            if (!userId) {
+                alert("Ошибка: не удалось получить Telegram ID");
+                return;
+            }
+
+            try {
+                const predictionssArray = Object.entries(predictions).map(
+                    ([matchId, {scoreA, scoreB}]) => ({
+                        matchId,
+                        scoreA: Number(scoreA),
+                        scoreB: Number(scoreB),
+                        userId,
+                        createdAt: serverTimestamp()
+                    })
+                );
+
+                const batchSaves = predictionssArray.map((prediction) =>
+                    addDoc(collection(db, "predictions"), prediction)
+                );
+
+                await Promise.all(batchSaves);
+
+                tg.showAlert("Прогнозы сохранены ✅");
+            } catch (err) {
+                console.error("Ошибка при сохранении:", err);
+                tg.showAlert("Ошибка при сохранении прогнозов ❌");
+            }
         });
 
         return () => {
