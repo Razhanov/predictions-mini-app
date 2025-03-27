@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { useMatches } from "./hooks/useMatches.js";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from './firebase/config.js';
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
@@ -25,7 +25,34 @@ function App() {
         }
 
         tg.MainButton.offClick();
-        tg.MainButton.onClick(handleSave());
+        tg.MainButton.onClick(handleSave);
+
+        const fetchUserPredictions = async () => {
+            const userId = tg.initDataUnsafe?.user?.id;
+            if (!userId) return;
+
+            try {
+                const q = query(
+                    collection(db, "predictions"),
+                    where("userId", "==", userId)
+                );
+                const snapshot = await getDocs(q);
+
+                const initialPredictions = {};
+                snapshot.forEach((doc) => {
+                    const { matchId, scoreA, scoreB } = doc.data();
+                    initialPredictions[matchId] = {
+                        scoreA: scoreA ?? "",
+                        scoreB: scoreB ?? ""
+                    };
+                });
+                setPredictions(initialPredictions);
+            } catch (error) {
+                console.error("Ошибка при загрузке прогнозов:", error);
+            }
+        };
+
+        fetchUserPredictions();
 
         return () => {
             tg.MainButton.offClick();

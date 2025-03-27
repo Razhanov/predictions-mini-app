@@ -9,5 +9,11 @@
 <body>
 <div id="root"></div>
 <script type="module" src="/src/main.jsx"></script>
+<script>
+  // Отключить все ошибки от сторонних расширений (для чистой разработки)
+  window.onerror = function (message, source) {
+    if (source.includes("chrome-extension://")) return true;
+  };
+</script>
 </body>
 </html>
