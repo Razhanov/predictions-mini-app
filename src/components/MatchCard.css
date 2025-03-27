@@ -39,3 +39,8 @@
     color: #888;
     margin-bottom: 0.5rem;
 }
+
+.inputs input.invalid {
+    border-color: #ff4d4f;
+    background-color: #fff5f5;
+}

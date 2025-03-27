@@ -2,6 +2,12 @@ import React from 'react';
 import './MatchCard.css';
 
 export default function MatchCard({ match, value = {}, onChange }) {
+    const scoreA = value.scoreA;
+    const scoreB = value.scoreB;
+
+    const isScoreAValid = scoreA !== '' && !isNaN(scoreA);
+    const isScoreBValid = scoreB !== '' && !isNaN(scoreB);
+
     const date = match.date ? new Date(match.date.seconds * 1000) : null;
     const formattedDate = date ? date.toLocaleDateString('ru-RU', {
         day: '2-digit',
@@ -24,14 +30,16 @@ export default function MatchCard({ match, value = {}, onChange }) {
                 <input
                     type="number"
                     placeholder="0"
-                    value={value?.scoreA || ''}
+                    value={scoreA}
                     onChange={(e) => onChange(match.id, 'scoreA', e.target.value)}
+                    className={!isScoreAValid ? 'invalid' : ''}
                 />
                 <input
                     type="number"
                     placeholder="0"
-                    value={value?.scoreB || ''}
+                    value={scoreB}
                     onChange={(e) => onChange(match.id, 'scoreB', e.target.value)}
+                    className={!isScoreBValid ? 'invalid' : ''}
                 />
             </div>
         </div>
