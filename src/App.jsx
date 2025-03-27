@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import { useEffect, useState } from 'react';
 import { useMatches } from "./hooks/useMatches.js";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, setDoc, doc, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from './firebase/config.js';
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
@@ -11,8 +11,11 @@ const tg = window.Telegram.WebApp;
 function App() {
     const { matches, loading } = useMatches();
     const [predictions, setPredictions] = useState({});
+    const predictionsRef = useRef(predictions);
 
     useEffect(() => {
+        predictionsRef.current = predictions;
+
         tg.ready();
         tg.expand();
 
@@ -57,32 +60,46 @@ function App() {
         return () => {
             tg.MainButton.offClick();
         };
-    }, [predictions]);
+    }, []);
 
     const handleSave = async () => {
         const userId = tg.initDataUnsafe?.user?.id;
+        const currentPredictions = predictionsRef.current;
+
+        const predictionsArray = Object.entries(currentPredictions)
+            .filter(([_, value]) =>
+                value?.scoreA !== '' &&
+                value?.scoreB !== '' &&
+                !isNaN(value.scoreA) &&
+                !isNaN(value.scoreB)
+            )
+            .map(([matchId, { scoreA, scoreB }]) => ({
+                docId: `${userId} ${matchId}`,
+                data: {
+                    matchId,
+                    userId,
+                    scoreA: Number(scoreA),
+                    scoreB: Number(scoreB),
+                    updatedAt: serverTimestamp()
+                }
+            }));
 
         if (!userId) {
             alert("Ошибка: не удалось получить Telegram ID");
             return;
         }
 
+        if (predictionsArray.length === 0) {
+            tg.showAlert("Введите хотя бы один прогноз 🙏");
+            return;
+        }
+
         try {
-            const predictionssArray = Object.entries(predictions).map(
-                ([matchId, {scoreA, scoreB}]) => ({
-                    matchId,
-                    scoreA: Number(scoreA),
-                    scoreB: Number(scoreB),
-                    userId,
-                    createdAt: serverTimestamp()
-                })
+            const batch = predictionsArray.map((doc) =>
+                addDoc(collection(db, "predictions"), doc)
             );
 
-            const batchSaves = predictionssArray.map((prediction) =>
-                addDoc(collection(db, "predictions"), prediction)
-            );
-
-            await Promise.all(batchSaves);
+            await Promise.all(batch);
 
             tg.showAlert("Прогнозы сохранены ✅");
         } catch (err) {
