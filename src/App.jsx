@@ -109,13 +109,18 @@ function App() {
     }
 
     const handleScoreChange = (matchId, field, value) => {
-        setPredictions(prev => ({
-            ...prev,
-            [matchId]: {
-                ...prev[matchId],
-                [field]: value
+        setPredictions(prev => {
+            const updated = {
+                ...prev,
+                [matchId]: {
+                    ...prev[matchId],
+                    [field]: value
+                }
             }
-        }));
+
+            predictionsRef.current = updated;
+            return updated;
+        });
     }
 
     return (
