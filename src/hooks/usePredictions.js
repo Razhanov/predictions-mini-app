@@ -2,8 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import {firebaseService} from "../services/firebase.js";
 import {telegramService} from "../services/telegram.js";
 
+function isValidPrediction(prediction) {
+    return prediction &&
+        prediction.scoreA !== '' &&
+        prediction.scoreB !== '' &&
+        !isNaN(prediction.scoreA) &&
+        !isNaN(prediction.scoreB);
+}
+
 export function usePredictions() {
     const [predictions, setPredictions] = useState({});
+    const [initialPredictions, setInitialPredictions] = useState({});
     const predictionsRef = useRef(predictions);
 
     useEffect(() => {
@@ -22,7 +31,15 @@ export function usePredictions() {
     }, [predictions]);
 
     const updateMainButtonVisibility = () => {
-        if (Object.keys(predictions).length > 0) {
+        const hasChanges = Object.keys(predictions).some((matchId) => {
+            const currentPrediction = predictions[matchId];
+            const initialPrediction = initialPredictions[matchId] ?? {};
+            return currentPrediction?.scoreA !== initialPrediction.scoreB || currentPrediction?.scoreB !== initialPrediction.scoreB;
+        });
+
+        const hasValid = Object.values(predictions).some(isValidPrediction);
+
+        if (hasChanges && hasValid) {
             telegramService.showMainButton();
         } else {
             telegramService.hideMainButton();
@@ -54,6 +71,7 @@ export function usePredictions() {
         try {
             const initialPredictions = await firebaseService.getPredictionByUser(userId);
             setPredictions(initialPredictions);
+            setInitialPredictions(initialPredictions);
         } catch (error) {
             console.error('Ошибка при загрузке прогнозов:', error);
         }
