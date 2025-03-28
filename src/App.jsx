@@ -1,127 +1,33 @@
-import React, {useRef} from 'react';
-import { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useMatches } from "./hooks/useMatches.js";
-import { collection, query, where, setDoc, doc, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from './firebase/config.js';
 import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
-
-const tg = window.Telegram.WebApp;
+import {usePredictions} from "./hooks/usePredictions.js";
+import RoundTabs from "./components/RoundTabs.jsx";
 
 function App() {
     const { matches, loading } = useMatches();
-    const [predictions, setPredictions] = useState({});
-    const predictionsRef = useRef(predictions);
+    const {
+        predictions,
+        handleScoreChange,
+        isReadyToSave
+    } = usePredictions();
+
+    const gameweeks = [...new Set(matches.map((m) => m.gameweek))].sort((a, b) => a - b);
+    const [selectedGameweek, setSelectedGameweek] = useState(null);
+
+    const now = Date.now();
+    const upcomingMatch = matches.find(m => m.date?.seconds * 1000 > now);
+    const lastGameweek = gameweeks[gameweeks.length - 1];
+    const upcomingGameweek = upcomingMatch?.gameweek ?? lastGameweek;
 
     useEffect(() => {
-        predictionsRef.current = predictions;
-
-        tg.ready();
-        tg.expand();
-
-        tg.MainButton.setParams({ text: 'Сохранить прогнозы' });
-
-        if (Object.keys(predictions).length > 0) {
-            tg.MainButton.show();
-        } else {
-            tg.MainButton.hide();
+        if (!loading && matches.length > 0 && selectedGameweek === null) {
+            setSelectedGameweek(upcomingGameweek);
         }
+    }, [loading, matches, selectedGameweek, gameweeks]);
 
-        tg.MainButton.offClick();
-        tg.MainButton.onClick(handleSave);
-
-        const fetchUserPredictions = async () => {
-            const userId = tg.initDataUnsafe?.user?.id;
-            if (!userId) return;
-
-            try {
-                const q = query(
-                    collection(db, "predictions"),
-                    where("userId", "==", userId)
-                );
-                const snapshot = await getDocs(q);
-
-                const initialPredictions = {};
-                snapshot.forEach((doc) => {
-                    const { matchId, scoreA, scoreB } = doc.data();
-                    initialPredictions[matchId] = {
-                        scoreA: scoreA ?? "",
-                        scoreB: scoreB ?? ""
-                    };
-                });
-                setPredictions(initialPredictions);
-            } catch (error) {
-                console.error("Ошибка при загрузке прогнозов:", error);
-            }
-        };
-
-        fetchUserPredictions();
-
-        return () => {
-            tg.MainButton.offClick();
-        };
-    }, []);
-
-    const handleSave = async () => {
-        const userId = tg.initDataUnsafe?.user?.id;
-        const currentPredictions = predictionsRef.current;
-
-        const predictionsArray = Object.entries(currentPredictions)
-            .filter(([_, value]) =>
-                value?.scoreA !== '' &&
-                value?.scoreB !== '' &&
-                !isNaN(value.scoreA) &&
-                !isNaN(value.scoreB)
-            )
-            .map(([matchId, { scoreA, scoreB }]) => ({
-                docId: `${userId} ${matchId}`,
-                data: {
-                    matchId,
-                    userId,
-                    scoreA: Number(scoreA),
-                    scoreB: Number(scoreB),
-                    updatedAt: serverTimestamp()
-                }
-            }));
-
-        if (!userId) {
-            alert("Ошибка: не удалось получить Telegram ID");
-            return;
-        }
-
-        if (predictionsArray.length === 0) {
-            tg.showAlert("Введите хотя бы один прогноз 🙏");
-            return;
-        }
-
-        try {
-            const batch = predictionsArray.map((doc) =>
-                addDoc(collection(db, "predictions"), doc)
-            );
-
-            await Promise.all(batch);
-
-            tg.showAlert("Прогнозы сохранены ✅");
-        } catch (err) {
-            console.error("Ошибка при сохранении:", err);
-            tg.showAlert("Ошибка при сохранении прогнозов ❌");
-        }
-    }
-
-    const handleScoreChange = (matchId, field, value) => {
-        setPredictions(prev => {
-            const updated = {
-                ...prev,
-                [matchId]: {
-                    ...prev[matchId],
-                    [field]: value
-                }
-            }
-
-            predictionsRef.current = updated;
-            return updated;
-        });
-    }
+    const filteredMatches = matches.filter((match) => match.gameweek === selectedGameweek);
 
     return (
         <div className="container">
@@ -135,16 +41,24 @@ function App() {
             )}
 
             {!loading && matches.length > 0 && (
-                <div className="match-list">
-                    {matches.map((match) => (
-                        <MatchCard
-                            key={match.id}
-                            match={match}
-                            value={predictions[match.id]}
-                            onChange={(field, value) => handleScoreChange(match.id, field, value)}
-                        />
-                    ))}
-                </div>
+                <>
+                    <RoundTabs
+                        rounds={gameweeks}
+                        selected={selectedGameweek}
+                        onSelect={setSelectedGameweek}
+                        current={upcomingGameweek}
+                    />
+                    <div className="match-list">
+                        {filteredMatches.map((match) => (
+                            <MatchCard
+                                key={match.id}
+                                match={match}
+                                value={predictions[match.id]}
+                                onChange={(field, value) => handleScoreChange(match.id, field, value)}
+                            />
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

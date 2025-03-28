@@ -47,7 +47,7 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     type="number"
                     placeholder="0"
                     value={scoreA !== undefined ? scoreA : ''}
-                    onChange={(e) => onChange(match.id, 'scoreA', e.target.value)}
+                    onChange={(e) => onChange('scoreA', e.target.value)}
                     className={!isScoreAValid ? 'invalid' : ''}
                     inputMode="numeric"
                     min="0"
@@ -58,7 +58,7 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     type="number"
                     placeholder="0"
                     value={scoreB !== undefined ? scoreB : ''}
-                    onChange={(e) => onChange(match.id, 'scoreB', e.target.value)}
+                    onChange={(e) => onChange('scoreB', e.target.value)}
                     className={!isScoreBValid ? 'invalid' : ''}
                     inputMode="numeric"
                     min="0"
