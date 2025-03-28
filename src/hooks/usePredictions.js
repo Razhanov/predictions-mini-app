@@ -16,28 +16,24 @@ export function usePredictions() {
     const predictionsRef = useRef(predictions);
 
     useEffect(() => {
-        predictionsRef.current = predictions;
-
         telegramService.readyWebApp();
         telegramService.setMainButton();
-        updateMainButtonVisibility();
-
         telegramService.setMainButtonClickHandler(handleSave);
         void fetchUserPredictions();
 
         return () => {
             telegramService.setMainButtonClickHandler(() => {});
         };
-    }, [predictions]);
+    }, []);
 
-    const updateMainButtonVisibility = () => {
-        const hasChanges = Object.keys(predictions).some((matchId) => {
-            const currentPrediction = predictions[matchId];
+    const updateMainButtonVisibility = (updated) => {
+        const hasChanges = Object.keys(updated).some((matchId) => {
+            const currentPrediction = updated[matchId];
             const initialPrediction = initialPredictions[matchId] ?? {};
             return currentPrediction?.scoreA !== initialPrediction.scoreB || currentPrediction?.scoreB !== initialPrediction.scoreB;
         });
 
-        const hasValid = Object.values(predictions).some(isValidPrediction);
+        const hasValid = Object.values(updated).some(isValidPrediction);
 
         if (hasChanges && hasValid) {
             telegramService.showMainButton();
@@ -88,6 +84,7 @@ export function usePredictions() {
             }
 
             predictionsRef.current = updated;
+            updateMainButtonVisibility(updated);
             return updated;
         });
     };
