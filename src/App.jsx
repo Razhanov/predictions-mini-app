@@ -27,7 +27,7 @@ function App() {
     } = usePredictions();
 
     const filteredByLeague = matches.filter((match) => match.leagueId === selectedLeague);
-    const round = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+    const round = [...new Set(filteredByLeague.map((m) => m.round))].sort((a, b) => a - b);
     const [selectedRound, setSelectedRound] = useState(null);
 
     const now = Date.now();
@@ -36,7 +36,7 @@ function App() {
     const upcomingRound = upcomingMatch?.round ?? lastRound;
 
     useEffect(() => {
-        if (!loading && filteredByLeague.length > 0 && selectedRound === null) {
+        if (!loading && filteredByLeague.length > 0) {
             setSelectedRound(upcomingRound);
         }
     }, [loading, matches, selectedLeague]);
