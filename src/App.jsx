@@ -4,8 +4,21 @@ import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
 import {usePredictions} from "./hooks/usePredictions.js";
 import RoundTabs from "./components/RoundTabs.jsx";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem
+} from "./components/ui/select";
+
+const LEAGUES = [
+    { id: "epl", name: "АПЛ"},
+    { id: "laliga", name: "Ла Лига"}
+]
 
 function App() {
+    const [selectedLeague, setSelectedLeague] = useState("epl");
     const { matches, loading } = useMatches();
     const {
         predictions,
@@ -13,25 +26,40 @@ function App() {
         isReadyToSave
     } = usePredictions();
 
-    const gameweeks = [...new Set(matches.map((m) => m.gameweek))].sort((a, b) => a - b);
-    const [selectedGameweek, setSelectedGameweek] = useState(null);
+    const filteredByLeague = matches.filter((match) => match.leagueId === selectedLeague);
+    const round = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+    const [selectedRound, setSelectedRound] = useState(null);
 
     const now = Date.now();
-    const upcomingMatch = matches.find(m => m.date?.seconds * 1000 > now);
-    const lastGameweek = gameweeks[gameweeks.length - 1];
-    const upcomingGameweek = upcomingMatch?.gameweek ?? lastGameweek;
+    const upcomingMatch = filteredByLeague.find(m => m.date?.seconds * 1000 > now);
+    const lastRound = round[round.length - 1];
+    const upcomingRound = upcomingMatch?.round ?? lastRound;
 
     useEffect(() => {
-        if (!loading && matches.length > 0 && selectedGameweek === null) {
-            setSelectedGameweek(upcomingGameweek);
+        if (!loading && filteredByLeague.length > 0 && selectedRound === null) {
+            setSelectedRound(upcomingRound);
         }
-    }, [loading, matches, selectedGameweek, gameweeks]);
+    }, [loading, matches, selectedLeague]);
 
-    const filteredMatches = matches.filter((match) => match.gameweek === selectedGameweek);
+    const filteredMatches = filteredByLeague.filter((match) => match.round === selectedRound);
 
     return (
         <div className="container">
             <h1 className="title">Прогнозы на матчи</h1>
+            <div className="league-select" style={{ marginBottom: "1rem", maxWidth: 200 }}>
+                <Select value={selectedLeague} onValueChange={setSelectedLeague}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Выберите лигу" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {LEAGUES.map(league => (
+                            <SelectItem key={league.id} value={league.id}>
+                                {league.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             {loading && <p>Загрузка матчей...</p>}
 
             {!loading && matches.length === 0 && (
@@ -40,13 +68,13 @@ function App() {
                 </p>
             )}
 
-            {!loading && matches.length > 0 && (
+            {!loading && filteredByLeague.length > 0 && (
                 <>
                     <RoundTabs
-                        rounds={gameweeks}
-                        selected={selectedGameweek}
-                        onSelect={setSelectedGameweek}
-                        current={upcomingGameweek}
+                        rounds={round}
+                        selected={selectedRound}
+                        onSelect={setSelectedRound}
+                        current={upcomingRound}
                     />
                     <div className="match-list">
                         {filteredMatches.map((match) => (
