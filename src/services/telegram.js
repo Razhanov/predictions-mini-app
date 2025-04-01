@@ -5,6 +5,15 @@ function getUserId() {
     return tg.initDataUnsafe?.user?.id;
 }
 
+function getUserName() {
+    const user = tg.initDataUnsafe?.user;
+    if (!user) return "Unknown";
+
+    const firstName = user.first_name || "";
+    const lastName = user.last_name || "";
+    return `${firstName} ${lastName}`.trim();
+}
+
 function readyWebApp() {
     tg.ready();
     tg.expand();
@@ -33,6 +42,7 @@ function showAlert(message) {
 
 export const telegramService = {
     getUserId,
+    getUserName,
     readyWebApp,
     setMainButtonClickHandler,
     showMainButton,

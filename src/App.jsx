@@ -62,11 +62,11 @@ function App() {
             </div>
             {loading && <p>Загрузка матчей...</p>}
 
-            {!loading && matches.length === 0 && (
-                <p style={{ textAlign: 'center', color: '#777' }}>
-                    Матчи скоро появятся ⚽️
-                </p>
-            )}
+                {!loading && matches.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#777' }}>
+                        Матчи скоро появятся ⚽️
+                    </p>
+                )}
 
             {!loading && filteredByLeague.length > 0 && (
                 <>

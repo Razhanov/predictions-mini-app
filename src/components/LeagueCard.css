@@ -1,0 +1,50 @@
+.league-card {
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.league-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.league-title {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.view-all {
+    color: #007bff;
+    font-size: 14px;
+}
+
+.league-users {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.user-place {
+    font-weight: bold;
+}
+
+.user-name {
+    flex: 1;
+    margin-left: 8px;
+}
+
+.user-score {
+    color: #666;
+}

@@ -14,10 +14,10 @@ export function calculatePoints(prediction, result) {
     let points = 0;
 
     const getOutcome = (a, b) => (a > b ? "A" : a < b ? "B" : "D");
-    if (getOutcome(pA, pB) === getOutcome(rA, pB)) points += 3;
+    if (getOutcome(pA, pB) === getOutcome(rA, rB)) points += 3;
     if (pA === rA) points += 2;
     if (pB === rB) points += 2;
-    if ((pA - pB) === (rA - pB)) points += 3;
+    if ((pA - pB) === (rA - rB)) points += 3;
 
     return points;
 }

@@ -20,7 +20,7 @@ async function getPredictionByUser(userId) {
     return predictions;
 }
 
-async function savePrediction(userId, predictionsObject) {
+async function savePrediction(userId, userName, predictionsObject) {
     const predictionsArray = Object.entries(predictionsObject)
         .filter(([_, value]) =>
             value?.scoreA !== '' &&
@@ -31,6 +31,7 @@ async function savePrediction(userId, predictionsObject) {
         .map(([matchId, { scoreA, scoreB }]) => ({
             matchId,
             userId,
+            userName,
             scoreA: Number(scoreA),
             scoreB: Number(scoreB),
             updatedAt: serverTimestamp()
