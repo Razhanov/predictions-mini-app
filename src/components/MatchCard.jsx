@@ -38,6 +38,12 @@ export default function MatchCard({ match, value = {}, onChange }) {
                 </div>
             )}
 
+            {hasResult && typeof value.points === 'number' && (
+                <div className="points-earned">
+                    🏅 Очки за матч: {value.points}
+                </div>
+            )}
+
             {isStarted && !hasResult && (
                 <div className="live-status">🔴 Матч LIVE</div>
             )}

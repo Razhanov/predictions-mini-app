@@ -1,4 +1,4 @@
-import {addDoc, collection, getDocs, query, serverTimestamp, where} from "firebase/firestore";
+import {setDoc, doc, collection, getDocs, query, serverTimestamp, where} from "firebase/firestore";
 import {db} from "../firebase/config.js";
 
 
@@ -10,10 +10,11 @@ async function getPredictionByUser(userId) {
 
     const predictions = {};
     snapshot.forEach((doc) => {
-        const { matchId, scoreA, scoreB } = doc.data();
+        const { matchId, scoreA, scoreB, points } = doc.data();
         predictions[matchId] = {
             scoreA: scoreA ?? '',
-            scoreB: scoreB ?? ''
+            scoreB: scoreB ?? '',
+            points: points ?? null
         };
     });
 
@@ -21,23 +22,25 @@ async function getPredictionByUser(userId) {
 }
 
 async function savePrediction(userId, userName, predictionsObject) {
-    const predictionsArray = Object.entries(predictionsObject)
+    const batch = Object.entries(predictionsObject)
         .filter(([_, value]) =>
             value?.scoreA !== '' &&
             value?.scoreB !== '' &&
             !isNaN(value.scoreA) &&
             !isNaN(value.scoreB)
         )
-        .map(([matchId, { scoreA, scoreB }]) => ({
-            matchId,
-            userId,
-            userName,
-            scoreA: Number(scoreA),
-            scoreB: Number(scoreB),
-            updatedAt: serverTimestamp()
-        }));
+        .map(async ([matchId, { scoreA, scoreB }]) => {
+            const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
+            await setDoc(ref, {
+                matchId,
+                userId,
+                userName,
+                scoreA: Number(scoreA),
+                scoreB: Number(scoreB),
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        });
 
-    const batch = predictionsArray.map((doc) => addDoc(collection(db, PREDICTIONS_COLLECTION), doc));
     await Promise.all(batch);
 }
 
