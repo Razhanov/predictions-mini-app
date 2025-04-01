@@ -14,7 +14,7 @@ const StandingsTable = ({ league, standings, onBack }) => {
                 {sorted.map((user, index) => (
                     <div className="standings-row" key={user.userId}>
                         <span className="place">#{index + 1}</span>
-                        <span className="name">{user.name || user.userId}</span>
+                        <span className="name">{user.userName || user.userId}</span>
                         <span className="points">{user.totalPoints} pts</span>
                     </div>
                 ))}
