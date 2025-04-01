@@ -22,8 +22,7 @@ function App() {
     const { matches, loading } = useMatches();
     const {
         predictions,
-        handleScoreChange,
-        isReadyToSave
+        handleScoreChange
     } = usePredictions();
 
     const filteredByLeague = matches.filter((match) => match.leagueId === selectedLeague);

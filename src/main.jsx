@@ -1,4 +1,3 @@
-import LeaguesList from "./components/LeaguesList.jsx";
 
 console.log('main.jsx работает');
 import React from 'react';
@@ -6,7 +5,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './App.css';
 import {Navigate, Routes, Route, Link, useLocation, BrowserRouter as Router} from "react-router-dom";
-import LeagueStandings from "./pages/LeagueStandings.jsx";
 import LeagueTab from "./LeagueTab.jsx";
 
 function TabBar() {
