@@ -44,6 +44,7 @@ export function usePredictions() {
 
     const handleSave = async () => {
         const userId = telegramService.getUserId();
+        const userName = telegramService.getUserName();
         const currentPredictions = predictionsRef.current;
 
         if (!userId) {
@@ -52,7 +53,7 @@ export function usePredictions() {
         }
 
         try {
-            await firebaseService.savePrediction(userId, currentPredictions);
+            await firebaseService.savePrediction(userId, userName, currentPredictions);
             telegramService.showAlert('Прогнозы сохранены ✅');
         } catch (err) {
             console.error("Ошибка при сохранении:", err);

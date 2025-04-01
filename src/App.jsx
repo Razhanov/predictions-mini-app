@@ -22,8 +22,7 @@ function App() {
     const { matches, loading } = useMatches();
     const {
         predictions,
-        handleScoreChange,
-        isReadyToSave
+        handleScoreChange
     } = usePredictions();
 
     const filteredByLeague = matches.filter((match) => match.leagueId === selectedLeague);
@@ -62,11 +61,11 @@ function App() {
             </div>
             {loading && <p>Загрузка матчей...</p>}
 
-            {!loading && matches.length === 0 && (
-                <p style={{ textAlign: 'center', color: '#777' }}>
-                    Матчи скоро появятся ⚽️
-                </p>
-            )}
+                {!loading && matches.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#777' }}>
+                        Матчи скоро появятся ⚽️
+                    </p>
+                )}
 
             {!loading && filteredByLeague.length > 0 && (
                 <>

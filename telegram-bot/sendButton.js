@@ -3,10 +3,11 @@ import TelegramBot from 'node-telegram-bot-api';
 const token = '7206155323:AAGccBSkHFc5GHLdFW0X9Y4zwJIBprzN8Ts'
 const bot = new TelegramBot(token, { polling: false });
 
-const chatId = '141191904';
+// const chatId = '141191904';
+const eplchatId = '-1001628368275';
 const webAppUrl = 'https://predictions-bot.netlify.app';
 
-bot.sendMessage(chatId, 'Открой мини-приложение👇', {
+bot.sendMessage(eplchatId, 'Открой мини-приложение👇', {
     reply_markup: {
         inline_keyboard: [
             [
@@ -22,3 +23,5 @@ bot.sendMessage(chatId, 'Открой мини-приложение👇', {
 })
     .then(() => console.log('Кнопка отправлена!'))
     .catch(console.error);
+
+// bot.sendMessage(eplchatId, 'ладно, щас вручную отправлю');
