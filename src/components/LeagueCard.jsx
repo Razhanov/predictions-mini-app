@@ -10,7 +10,7 @@ const LeagueCard = ({ league, onClick }) => {
             </div>
             <div className="league-users">
                 {league.topUsers.map((user, index) => (
-                    <div className="user-row" key={user.id}>
+                    <div className="user-row" key={`${user.id}_${index}`}>
                         <span className="user-place">#{index + 1}</span>
                         <span className="user-name">{user.userName}</span>
                         <span className="user-score">{user.totalPoints} pts</span>

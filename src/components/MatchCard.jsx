@@ -1,5 +1,6 @@
 import React from 'react';
 import './MatchCard.css';
+import {useNavigate} from "react-router-dom";
 
 export default function MatchCard({ match, value = {}, onChange }) {
     const scoreA = value.scoreA;
@@ -21,6 +22,7 @@ export default function MatchCard({ match, value = {}, onChange }) {
     const hasResult = match.result &&
         typeof match.result.scoreA === 'number' &&
         typeof match.result.scoreB === 'number'
+    const navigate = useNavigate();
 
     return (
         <div className="match-card">
@@ -72,6 +74,14 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     disabled={isStarted}
                 />
             </div>
+            { isStarted && (
+                <button
+                    className="friends-predictions-button"
+                    onClick={() => navigate(`/match/${match.id}/predictions`)}
+                >
+                    Посмотреть прогнозы от друзей
+                </button>
+            )}
         </div>
     );
 }
