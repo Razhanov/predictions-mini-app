@@ -49,3 +49,19 @@
     background-color: #f4f4f4;
     color: #888;
 }
+
+.points-earned {
+    margin-top: 6px;
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+.friends-predictions-button {
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 14px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}

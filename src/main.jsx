@@ -1,3 +1,4 @@
+import MatchPredictionsPage from "./components/MatchPredictionsPage.jsx";
 
 console.log('main.jsx работает');
 import React from 'react';
@@ -35,6 +36,7 @@ function Root() {
                 <Routes>
                     <Route path="/" element={<App />} />
                     <Route path="/leagues" element={<LeagueTab />} />
+                    <Route path="/match/:matchId/predictions" element={<MatchPredictionsPage />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
                 <TabBar />

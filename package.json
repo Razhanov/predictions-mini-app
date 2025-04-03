@@ -30,6 +30,7 @@
   "dependencies": {
     "@radix-ui/react-select": "^2.1.6",
     "@vitejs/plugin-react": "^4.3.4",
+    "express": "^5.1.0",
     "firebase": "^11.5.0",
     "lucide-react": "^0.485.0",
     "node-telegram-bot-api": "^0.66.0",
