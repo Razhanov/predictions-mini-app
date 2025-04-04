@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from "react";
-import {addDoc, collection, serverTimestamp} from "firebase/firestore"
+import {addDoc, collection, doc, serverTimestamp, setDoc} from "firebase/firestore"
 import {db} from "../firebase/config.js";
 import {useTelegramUser} from "../hooks/useTelegramUser.js";
 import {useNavigate} from "react-router-dom";
 import {useIsAdmin} from "../hooks/useIsAdmin.js";
+import {format} from "date-fns";
 import "./AdminPanel.css";
 
 function AdminPanel() {
@@ -24,11 +25,20 @@ function AdminPanel() {
         setLoading(true);
 
         try {
-            await addDoc(collection(db, "matches"), {
+            const matchDate = new Date(date);
+            const month = format(matchDate, 'LLLL').toLowerCase();
+            const year = matchDate.getFullYear();
+
+            const matchId = `${round}_${teamA.trim().toLowerCase()}_${teamB.trim().toLowerCase()}_${month}_${year}`.replace(/\s+/g, "_");
+
+            const matchRef = doc(db, "matches", matchId);
+
+            await setDoc(matchRef, {
                 teamA,
                 teamB,
                 round: Number(round),
                 leagueId,
+                isFinished: false,
                 date: new Date(date),
                 createdAt: serverTimestamp()
             });
