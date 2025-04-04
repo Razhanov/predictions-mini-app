@@ -7,7 +7,7 @@ import App from './App.jsx';
 import './App.css';
 import {Navigate, Routes, Route, Link, useLocation, BrowserRouter as Router} from "react-router-dom";
 import LeagueTab from "./LeagueTab.jsx";
-import AdminPanel from "./components/AdminPanel.jsx";
+import AdminPanel from "./components/admin/AdminPanel.jsx";
 
 function TabBar() {
     const location = useLocation();
