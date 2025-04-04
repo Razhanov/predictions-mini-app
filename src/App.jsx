@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState } from 'react';
 import { useMatches } from "./hooks/useMatches.js";
 import { useSelectedRound } from "./hooks/useSelectedRound.js";
-import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
 import {usePredictions} from "./hooks/usePredictions.js";
 import RoundTabs from "./components/RoundTabs.jsx";
