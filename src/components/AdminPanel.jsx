@@ -20,7 +20,7 @@ function AdminPanel() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!teamA || !teamB || round || date) return;
+        if (!teamA || !teamB || !round || !date) return;
         setLoading(true);
 
         try {
