@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {addDoc, collection, doc, serverTimestamp, setDoc} from "firebase/firestore"
+import {doc, serverTimestamp, setDoc} from "firebase/firestore"
 import {db} from "../firebase/config.js";
 import {useTelegramUser} from "../hooks/useTelegramUser.js";
 import {useNavigate} from "react-router-dom";
