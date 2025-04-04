@@ -1,0 +1,61 @@
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+}
+
+.back-button {
+    background-color: transparent;
+    border: none;
+    color: #007BFF;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.heading {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.match-title {
+    font-size: 18px;
+    margin-bottom: 1rem;
+    color: #333;
+    text-align: center;
+}
+
+.prediction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.prediction-card {
+    border: 1px solid #eee;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-name {
+    font-weight: bold;
+    color: #222;
+}
+
+.score {
+    font-size: 16px;
+    color: #555;
+}
+
+.points {
+    margin-left: 8px;
+    color: #999;
+    font-size: 14px;
+}

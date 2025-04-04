@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {getMatchById, getPredictionsForMatch} from "../services/getPredictionsForMatch.js";
+import './MatchPredictionsPage.css';
 
 function MatchPredictionsPage() {
     const { matchId } = useParams();
@@ -25,19 +26,26 @@ function MatchPredictionsPage() {
     const hasResult = match?.result && typeof match.result.scoreA === "number";
 
     return (
-        <div style={{ padding: "1rem" }}>
-            <button onClick={() => navigate(-1)}>← Назад</button>
-            <h2>Прогнозы на матч</h2>
+        <div className="container">
+            <button className="back-button" onClick={() => navigate(-1)}>← Назад</button>
+            <h2 className="heading">Прогнозы на матч</h2>
             {match && (
-                <p>
+                <p className="match-title">
                     {match.teamA} vs {match.teamB}
                 </p>
             )}
-            <div>
+            <div className="prediction-list">
                 {predictions.map((prediction, index) => (
-                    <div key={index} style={{ marginBottom: 10, borderBottom: "1px solid #eee", padding: 8 }}>
-                        <strong>{prediction.userName}</strong>: {prediction.scoreA}–{prediction.scoreB}
-                        {hasResult && <> ({prediction.points ?? "-"} очков)</>}
+                    <div key={index} className="prediction-card">
+                        <div className="user-name">{prediction.userName || prediction.userId}</div>
+                        <div className="score">
+                            {prediction.scoreA}–{prediction.scoreB}
+                        </div>
+                        {hasResult && (
+                            <span className="points">
+                                ({prediction.points ?? "-"} очков)
+                            </span>
+                        )}
                     </div>
                 ))}
             </div>
