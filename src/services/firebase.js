@@ -33,6 +33,7 @@ async function savePrediction(userId, userName, predictionsObject) {
             return (!prev || prev.scoreA !== Number(value.scoreA) || prev.scoreB !== Number(value.scoreB));
         })
         .map(async ([matchId, { scoreA, scoreB }]) => {
+            console.log(`✅ Обновляем прогноз на матч ${matchId}: ${scoreA}–${scoreB}`);
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
             await setDoc(ref, {
                 matchId,
