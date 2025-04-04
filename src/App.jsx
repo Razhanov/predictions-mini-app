@@ -5,6 +5,7 @@ import './App.css'
 import {usePredictions} from "./hooks/usePredictions.js";
 import RoundTabs from "./components/RoundTabs.jsx";
 import MatchSection from "./components/MatchSection.jsx";
+import MenuDropdown from "./components/MenuDropdown.jsx";
 
 function App() {
     const { matches, loading } = useMatches();
@@ -29,7 +30,10 @@ function App() {
 
     return (
         <div className="container">
-            <h1 className="title">Прогнозы на матчи</h1>
+            <div className="app-header">
+                <h1 className="title">Прогнозы на матчи</h1>
+                <MenuDropdown />
+            </div>
             {loading && <p>Загрузка матчей...</p>}
 
                 {!loading && matches.length === 0 && (

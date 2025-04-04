@@ -19,3 +19,10 @@ body, html {
     flex-direction: column;
     gap: 1rem;
 }
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
