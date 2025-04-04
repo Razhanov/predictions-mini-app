@@ -4,18 +4,6 @@ import MatchCard from "./components/MatchCard.jsx";
 import './App.css'
 import {usePredictions} from "./hooks/usePredictions.js";
 import RoundTabs from "./components/RoundTabs.jsx";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem
-} from "./components/ui/select";
-
-const LEAGUES = [
-    { id: "epl", name: "АПЛ"},
-    { id: "laliga", name: "Ла Лига"}
-]
 
 function App() {
     const [selectedLeague, setSelectedLeague] = useState("epl");
@@ -45,20 +33,6 @@ function App() {
     return (
         <div className="container">
             <h1 className="title">Прогнозы на матчи</h1>
-            <div className="league-select" style={{ marginBottom: "1rem", maxWidth: 200 }}>
-                <Select value={selectedLeague} onValueChange={setSelectedLeague}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Выберите лигу" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {LEAGUES.map(league => (
-                            <SelectItem key={league.id} value={league.id}>
-                                {league.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
             {loading && <p>Загрузка матчей...</p>}
 
                 {!loading && matches.length === 0 && (

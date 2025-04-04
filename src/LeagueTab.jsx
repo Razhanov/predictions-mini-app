@@ -4,8 +4,7 @@ import StandingsTable from "./components/StandingsTable.jsx";
 import LeaguesList from "./components/LeaguesList.jsx";
 
 const LEAGUES = [
-    { id: "epl", name: "АПЛ", type: "public" },
-    { id: "laliga", name: "Ла Лига", type: "public" }
+    { id: "epl", name: "АПЛ", type: "public" }
 ];
 
 function LeagueTab() {
