@@ -46,10 +46,10 @@ function AdminPanel() {
     };
 
     useEffect(() => {
-        if (!isAdmin) {
+        if (telegramUser && isAdmin === false) {
             navigate("/");
         }
-    }, [isAdmin, navigate]);
+    }, [isAdmin, telegramUser, navigate]);
 
     if (!isAdmin) return null;
 
