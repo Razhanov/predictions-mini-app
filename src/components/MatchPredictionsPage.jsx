@@ -37,7 +37,7 @@ function MatchPredictionsPage() {
             <div className="prediction-list">
                 {predictions.map((prediction, index) => (
                     <div key={index} className="prediction-card">
-                        <div className="user-name">{prediction.userName}</div>
+                        <div className="user-name">{prediction.userName || prediction.userId}</div>
                         <div className="score">
                             {prediction.scoreA}–{prediction.scoreB}
                         </div>
