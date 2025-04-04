@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  publish = "dist" # или "build", в зависимости от сборщика (Vite → dist, CRA → build)
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

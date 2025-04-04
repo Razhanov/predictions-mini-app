@@ -10,7 +10,7 @@ export function useMatches() {
             try {
                 const allMatches = await matchService.getAllMatches();
 
-                setMatches(allMatches);
+                setMatches(sortMatches(allMatches));
             } catch (err) {
                 console.error("Ошибка загрузки матчей:", err);
                 setLoading(false);
@@ -21,4 +21,17 @@ export function useMatches() {
     }, []);
 
     return { matches, loading };
+}
+
+function sortMatches(matches) {
+    return matches.sort((a, b) => {
+        const isFinishedA = !!a.result;
+        const isFinishedB = !!b.result;
+
+        if (isFinishedA !== isFinishedB) {
+            return isFinishedA ? 1 : -1;
+        }
+
+        return new Date(a.timestamp) - new Date(b.timestamp);
+    });
 }

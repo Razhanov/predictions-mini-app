@@ -1,0 +1,15 @@
+
+.match-section-title {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: #333;
+    border-left: 4px solid #6C63FF;
+    padding-left: 0.5rem;
+    transition: 0.2s ease;
+}
+
+.match-section-title.clickable {
+    cursor: pointer;
+    user-select: none;
+}

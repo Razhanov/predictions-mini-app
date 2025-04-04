@@ -7,6 +7,7 @@ import App from './App.jsx';
 import './App.css';
 import {Navigate, Routes, Route, Link, useLocation, BrowserRouter as Router} from "react-router-dom";
 import LeagueTab from "./LeagueTab.jsx";
+import AdminPanel from "./components/admin/AdminPanel.jsx";
 
 function TabBar() {
     const location = useLocation();
@@ -37,6 +38,7 @@ function Root() {
                     <Route path="/" element={<App />} />
                     <Route path="/leagues" element={<LeagueTab />} />
                     <Route path="/match/:matchId/predictions" element={<MatchPredictionsPage />} />
+                    <Route path="/admin" element={<AdminPanel />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
                 <TabBar />
