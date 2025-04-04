@@ -22,13 +22,16 @@ async function getPredictionByUser(userId) {
 }
 
 async function savePrediction(userId, userName, predictionsObject) {
+    const previousPredictions = await getPredictionByUser(userId);
+
     const batch = Object.entries(predictionsObject)
-        .filter(([_, value]) =>
-            value?.scoreA !== '' &&
-            value?.scoreB !== '' &&
-            !isNaN(value.scoreA) &&
-            !isNaN(value.scoreB)
-        )
+        .filter(([matchId, value]) => {
+            if (!value || isNaN(value.scoreA) || isNaN(value.scoreB)) return false;
+
+            const prev = previousPredictions[matchId];
+
+            return (!prev || prev.scoreA !== Number(value.scoreA) || prev.scoreB !== Number(value.scoreB));
+        })
         .map(async ([matchId, { scoreA, scoreB }]) => {
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
             await setDoc(ref, {
