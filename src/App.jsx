@@ -6,6 +6,7 @@ import {usePredictions} from "./hooks/usePredictions.js";
 import RoundTabs from "./components/RoundTabs.jsx";
 import MatchSection from "./components/MatchSection.jsx";
 import MenuDropdown from "./components/MenuDropdown.jsx";
+import {useRoundPointsMap} from "./hooks/useRoundPointsMap.js";
 
 function App() {
     const { matches, loading } = useMatches();
@@ -13,6 +14,7 @@ function App() {
         predictions,
         handleScoreChange
     } = usePredictions();
+    const roundPointsMap = useRoundPointsMap();
 
     const [showUpcoming, setShowUpcoming] = useState(true);
     const [showFinished, setShowFinished] = useState(true);
@@ -49,6 +51,7 @@ function App() {
                         selected={selectedRound}
                         onSelect={setSelectedRound}
                         current={upcomingRound}
+                        pointsMap={roundPointsMap}
                     />
                     <div className="match-list">
                         <MatchSection
