@@ -1,6 +1,7 @@
 import React from 'react';
 import './MatchCard.css';
 import {useNavigate} from "react-router-dom";
+import {calculatePoints} from "../../functions/scoreService.js";
 
 export default function MatchCard({ match, value = {}, onChange }) {
     const scoreA = value.scoreA;
@@ -24,6 +25,17 @@ export default function MatchCard({ match, value = {}, onChange }) {
         typeof match.result.scoreB === 'number'
     const navigate = useNavigate();
 
+    const isLive = isStarted && !hasResult;
+    let livePoints = 0;
+
+    if (isLive) {
+        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB) };
+        const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0 };
+        console.log("predicted", predicted);
+        console.log("actual", actual);
+        livePoints = calculatePoints(predicted, actual);
+    }
+
     return (
         <div className="match-card">
             <div className="teams">
@@ -46,8 +58,16 @@ export default function MatchCard({ match, value = {}, onChange }) {
                 </div>
             )}
 
-            {isStarted && !hasResult && (
-                <div className="live-status">🔴 Матч LIVE</div>
+            {isLive && (
+                <div className="live-score">
+                    🟡 Текущий счёт: {match.liveScoreA ?? 0} : {match.liveScoreB ?? 0}
+                </div>
+            )}
+
+            {isLive && (
+                <div className="live-points">
+                    💡 Твои live-очки: {livePoints ?? 0}
+                </div>
             )}
 
             <div className="inputs">

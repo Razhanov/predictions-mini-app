@@ -65,3 +65,9 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
+.live-score, .live-points {
+    margin-top: 4px;
+    font-size: 0.95rem;
+    color: #444;
+}
