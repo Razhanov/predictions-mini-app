@@ -1,2 +1,2 @@
 
-export const ADMIN_USER_IDS = [141191904];
+export const ADMIN_USER_IDS = [141191904, 465078294];
