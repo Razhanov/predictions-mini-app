@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {getMatchById, getPredictionsForMatch} from "../services/getPredictionsForMatch.js";
 import './MatchPredictionsPage.css';
+import {calculatePoints} from "../../functions/scoreService.js";
 
 function MatchPredictionsPage() {
     const { matchId } = useParams();
@@ -35,19 +36,23 @@ function MatchPredictionsPage() {
                 </p>
             )}
             <div className="prediction-list">
-                {predictions.map((prediction, index) => (
-                    <div key={index} className="prediction-card">
-                        <div className="user-name">{prediction.userName || prediction.userId}</div>
-                        <div className="score">
-                            {prediction.scoreA}–{prediction.scoreB}
-                        </div>
-                        {hasResult && (
+                {predictions.map((prediction, index) => {
+                    const points = hasResult ? prediction.points : calculatePoints(prediction, {
+                        scoreA: match.liveScoreA ?? 0,
+                        scoreB: match.liveScoreB ?? 0
+                    });
+                    return (
+                        <div key={index} className="prediction-card">
+                            <div className="user-name">{prediction.userName || prediction.userId}</div>
+                            <div className="score">
+                                {prediction.scoreA}–{prediction.scoreB}
+                            </div>
                             <span className="points">
-                                ({prediction.points ?? "-"} очков)
+                                ({points ?? "-"} очков{!hasResult && " LIVE"})
                             </span>
-                        )}
-                    </div>
-                ))}
+                        </div>
+                    )
+                })}
             </div>
         </div>
     );
