@@ -1,39 +1,29 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {getStandingsForLeague} from "./hooks/getStandingsForLeague.js";
 import StandingsTable from "./components/StandingsTable.jsx";
 import LeaguesList from "./components/LeaguesList.jsx";
-
-const LEAGUES = [
-    { id: "epl", name: "АПЛ", type: "public" }
-];
+import {getRoundPointsForLeague, getRoundPointsForPrivateLeague} from "./hooks/getRoundPointsForLeague.js";
+import {useLeaguesWithTopUsers} from "./hooks/useLeaguesWithTopUsers.js";
+import {getStandingsForPrivateLeague} from "./hooks/getStandingsForPrivateLeague.js";
+import {telegramService} from "./services/telegram.js";
 
 function LeagueTab() {
+    const userId = telegramService.getUserId();
+    const { leagues, loading, error } = useLeaguesWithTopUsers(userId);
     const [standings, setStandings] = useState([]);
     const [selectedLeague, setSelectedLeague] = useState(null);
-    const [leaguesWithTopUsers, setLeaguesWithTopUsers] = useState([]);
-
-    useEffect(() => {
-        const fetchTopUsers = async () => {
-            const updatedLeagues = await Promise.all(
-                LEAGUES.map(async (league) => {
-                    const data = await getStandingsForLeague(league.id);
-                    return {
-                        ...league,
-                        topUsers: data.slice(0, 3)
-                    };
-                })
-            );
-            setLeaguesWithTopUsers(updatedLeagues);
-        };
-
-        fetchTopUsers();
-    }, []);
+    const [roundPoints, setRoundPoints] = useState([]);
 
     const handleViewAll = async (league) => {
-        const data = await getStandingsForLeague(league.id);
+        const isPrivate = league.id !== "epl";
+        const [standingsData, roundPointsData] = await Promise.all([
+            isPrivate ? getStandingsForPrivateLeague(league.id) : getStandingsForLeague(league.id),
+            isPrivate ? getRoundPointsForPrivateLeague(league.id) : getRoundPointsForLeague(league.id)
+        ]);
 
         setSelectedLeague(league);
-        setStandings(data);
+        setStandings(standingsData);
+        setRoundPoints(roundPointsData);
     };
 
     const handleBack = () => {
@@ -46,12 +36,16 @@ function LeagueTab() {
             <StandingsTable
                 league={selectedLeague}
                 standings={standings}
+                roundPoints={roundPoints}
                 onBack={handleBack}
             />
         );
     }
 
-    return <LeaguesList leagues={leaguesWithTopUsers} onViewAll={handleViewAll} />;
+    if (loading) return <p>Загружаем лиги...</p>;
+    if (error) return <p>Ошибка загрузки лиг 😢</p>;
+
+    return <LeaguesList leagues={leagues} onViewAll={handleViewAll} />;
 }
 
 export default LeagueTab;
