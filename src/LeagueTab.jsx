@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {getStandingsForLeague} from "./hooks/getStandingsForLeague.js";
 import StandingsTable from "./components/StandingsTable.jsx";
 import LeaguesList from "./components/LeaguesList.jsx";
+import {getRoundPointsForLeague} from "./hooks/getRoundPointsForLeague.js";
 
 const LEAGUES = [
     { id: "epl", name: "АПЛ", type: "public" }
@@ -11,6 +12,7 @@ function LeagueTab() {
     const [standings, setStandings] = useState([]);
     const [selectedLeague, setSelectedLeague] = useState(null);
     const [leaguesWithTopUsers, setLeaguesWithTopUsers] = useState([]);
+    const [roundPoints, setRoundPoints] = useState([]);
 
     useEffect(() => {
         const fetchTopUsers = async () => {
@@ -30,10 +32,14 @@ function LeagueTab() {
     }, []);
 
     const handleViewAll = async (league) => {
-        const data = await getStandingsForLeague(league.id);
+        const [standingsData, roundPointsData] = await Promise.all([
+            getStandingsForLeague(league.id),
+            getRoundPointsForLeague(league.id)
+        ]);
 
         setSelectedLeague(league);
-        setStandings(data);
+        setStandings(standingsData);
+        setRoundPoints(roundPointsData);
     };
 
     const handleBack = () => {
@@ -46,6 +52,7 @@ function LeagueTab() {
             <StandingsTable
                 league={selectedLeague}
                 standings={standings}
+                roundPoints={roundPoints}
                 onBack={handleBack}
             />
         );
