@@ -365,13 +365,11 @@ async function joinLeagueByCode(inviteCode, userId, userName, chatId) {
         });
 
     await bot.sendMessage(chatId, `🎉 Ты присоединился к лиге "${league.data().name}"`);
-};
+}
 
 bot.onText(/\/leaderboard/, async (msg) => {
     const chatId = msg.chat.id;
     const isPrivate = msg.chat.type === "private";
-    const userId = msg.from.id;
-    const userName = msg.from.username;
 
     try {
         let standingsSnap;
