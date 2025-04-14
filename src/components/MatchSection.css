@@ -1,15 +1,27 @@
 
-.match-section-title {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-    color: #333;
-    border-left: 4px solid #6C63FF;
-    padding-left: 0.5rem;
-    transition: 0.2s ease;
+.match-section {
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    animation: fadeIn 0.4s ease-out both;
 }
 
-.match-section-title.clickable {
-    cursor: pointer;
-    user-select: none;
+.match-section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #111;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
