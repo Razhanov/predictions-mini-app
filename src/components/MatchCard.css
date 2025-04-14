@@ -71,3 +71,31 @@
     font-size: 0.95rem;
     color: #444;
 }
+
+.score-input {
+    width: 36px;
+    height: 36px;
+    text-align: center;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+}
+
+.score-input:focus {
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.score-input[disabled] {
+    background-color: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.score-input::placeholder {
+    color: #bbb;
+    font-size: 14px;
+}
