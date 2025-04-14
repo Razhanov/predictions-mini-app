@@ -1,14 +1,15 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import './MatchCard.css';
 import {useNavigate} from "react-router-dom";
 import {calculatePoints} from "../../functions/scoreService.js";
+import ScoreInput from "./ScoreInput.jsx";
 
 export default function MatchCard({ match, value = {}, onChange }) {
     const scoreA = value.scoreA;
     const scoreB = value.scoreB;
 
-    const isScoreAValid = scoreA === '' || scoreA === undefined || !isNaN(scoreA);
-    const isScoreBValid = scoreB === '' || scoreB === undefined || !isNaN(scoreB);
+    const inputARef = useRef(null);
+    const inputBRef = useRef(null);
 
     const date = match.date ? new Date(match.date.seconds * 1000) : null;
     const formattedDate = date ? date.toLocaleDateString('ru-RU', {
@@ -71,27 +72,19 @@ export default function MatchCard({ match, value = {}, onChange }) {
             )}
 
             <div className="inputs">
-                <input
-                    type="number"
-                    placeholder="0"
-                    value={scoreA !== undefined ? scoreA : ''}
-                    onChange={(e) => onChange('scoreA', e.target.value)}
-                    className={!isScoreAValid ? 'invalid' : ''}
-                    inputMode="numeric"
-                    min="0"
-                    step="1"
+                <ScoreInput
+                    value={scoreA ?? ''}
+                    onChange={(value) => onChange('scoreA', value)}
                     disabled={isStarted}
+                    nextRef={inputBRef}
+                    ref={inputARef}
                 />
-                <input
-                    type="number"
-                    placeholder="0"
-                    value={scoreB !== undefined ? scoreB : ''}
-                    onChange={(e) => onChange('scoreB', e.target.value)}
-                    className={!isScoreBValid ? 'invalid' : ''}
-                    inputMode="numeric"
-                    min="0"
-                    step="1"
+                <ScoreInput
+                    value={scoreB ?? ''}
+                    onChange={(value) => onChange('scoreB', value)}
                     disabled={isStarted}
+                    nextRef={inputARef}
+                    ref={inputBRef}
                 />
             </div>
             { isStarted && (

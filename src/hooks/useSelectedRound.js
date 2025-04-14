@@ -1,7 +1,24 @@
-import { useEffect, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 
-export function useSelectedRound(matches, upcomingRound) {
-    const roundList = [...new Set(matches.map(m => m.round))].sort((a, b) => a - b);
+export function useSelectedRound(matches) {
+    const roundList = useMemo(() => {
+        return [...new Set(matches.map(m => m.round))].sort((a, b) => a - b);
+    }, [matches]);
+
+    const now = Date.now();
+
+    const upcomingMatch = useMemo(() => {
+        return matches.find(m => m.date?.seconds * 1000 > now);
+    }, [matches]);
+
+    const lastRound = useMemo(() => {
+        return roundList.at(-1);
+    }, [roundList]);
+
+    const upcomingRound = useMemo(() => {
+        return upcomingMatch?.round ?? lastRound;
+    }, [upcomingMatch, lastRound]);
+
     const [selectedRound, setSelectedRound] = useState(null);
 
     useEffect(() => {
@@ -10,10 +27,11 @@ export function useSelectedRound(matches, upcomingRound) {
             console.log("📦 Получено из sessionStorage:", storedRound);
             const parsedRound = storedRound ? parseInt(storedRound, 10) : null;
             console.log("🔢 Распарсили:", parsedRound);
-            console.log("✅ Устанавливаем selectedRound:", parsedRound && roundList.includes(parsedRound) ? parsedRound : upcomingRound);
-            setSelectedRound(parsedRound && roundList.includes(parsedRound) ? parsedRound : upcomingRound);
+            const roundToUse = parsedRound && roundList.includes(parsedRound) ? parsedRound : upcomingRound;
+            console.log("✅ Устанавливаем selectedRound:", roundToUse);
+            setSelectedRound(roundToUse);
         }
-    }, [matches]);
+    }, [matches, roundList, upcomingRound]);
 
     useEffect(() => {
         if (selectedRound !== null) {
@@ -22,5 +40,5 @@ export function useSelectedRound(matches, upcomingRound) {
         }
     }, [selectedRound]);
 
-    return { selectedRound, setSelectedRound, roundList };
+    return { selectedRound, setSelectedRound, roundList, upcomingRound, lastRound };
 }

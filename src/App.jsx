@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useMemo, useState} from 'react';
 import { useMatches } from "./hooks/useMatches.js";
 import { useSelectedRound } from "./hooks/useSelectedRound.js";
 import './App.css'
@@ -19,16 +19,20 @@ function App() {
     const [showUpcoming, setShowUpcoming] = useState(true);
     const [showFinished, setShowFinished] = useState(true);
 
-    const now = Date.now();
-    const upcomingMatch = matches.find(m => m.date?.seconds * 1000 > now);
-    const lastRound = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b).at(-1);
-    const upcomingRound = upcomingMatch?.round ?? lastRound;
+    const { selectedRound, setSelectedRound, roundList, upcomingRound } = useSelectedRound(matches);
 
-    const { selectedRound, setSelectedRound, roundList } = useSelectedRound(matches, upcomingRound);
+    const filteredMatches = useMemo(() => {
+        return matches.filter((match) => match.round === selectedRound);
+    }, [matches, selectedRound]);
 
-    const filteredMatches = matches.filter((match) => match.round === selectedRound);
-    const upcomingMatches = filteredMatches.filter(match => !match.result);
-    const finishedMatches = filteredMatches.filter(match => match.result);
+    const { upcomingMatches, finishedMatches } = filteredMatches.reduce((acc, match) => {
+        if (match.result) {
+            acc.finishedMatches.push(match);
+        } else {
+            acc.upcomingMatches.push(match);
+        }
+        return acc;
+    }, { upcomingMatches: [], finishedMatches: [] });
 
     return (
         <div className="container">

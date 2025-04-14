@@ -131,7 +131,7 @@ bot.onText(/\/create_league/, async (msg) => {
     const userId = msg.from.id;
 
     if (isPrivate) {
-        userStates.set(userId, true);
+        userStates.set(userId, 'awaiting_league_name');
         return bot.sendMessage(chatId, "🏷 Введи название лиги, которую хочешь создать:");
     }
 
@@ -169,12 +169,19 @@ bot.on("message", async (msg) => {
 
     if (!isPrivate || !text || !userStates.has(userId)) return;
 
+    const state = userStates.get(userId);
     userStates.delete(userId);
 
     const chatId = msg.chat.id;
-    const creatorName = msg.from.userName || `${msg.from.first_name} ${msg.from.last_name || ""}`.trim();
+    const userName = msg.from.userName || `${msg.from.first_name} ${msg.from.last_name || ""}`.trim();
 
-    await createLeagueAndSend(chatId, userId, creatorName, text);
+    if (state === 'awaiting_league_name') {
+        await createLeagueAndSend(chatId, userId, userName, text);
+    }
+
+    if (state === 'awaiting_invite_code') {
+        await joinLeagueByCode(text, userId, userName, chatId);
+    }
 });
 
 bot.on('callback_query', async (query) => {
@@ -198,7 +205,6 @@ bot.on('callback_query', async (query) => {
 
             const league = leagueSnap.docs[0];
             const leagueId = league.id;
-            const leagueData = league.data();
 
             const memberRef = db.collection("leagueMembers").doc(`${leagueId}_${userId}`);
             const memberSnap = await memberRef.get();
@@ -265,6 +271,166 @@ async function createLeagueAndSend(chatId, creatorId, creatorName, leagueName, c
         }
     });
 }
+
+bot.onText(/\/join_league(?:\s+(\S+))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const isPrivate = msg.chat.type === "private";
+    const userId = msg.from.id;
+    const userName = msg.from.username || `${msg.from.first_name} ${msg.from.last_name || ''}`.trim();
+
+    if (!isPrivate) {
+        const leagueSnap = await db.collection("leagues")
+            .where("chatId", "==", chatId)
+            .limit(1)
+            .get();
+
+        if (leagueSnap.empty) {
+            return bot.sendMessage(chatId, "⚠️ Этот чат не привязан к лиге. Попросите админа создать её с помощью /create_league.");
+        }
+
+        const league = leagueSnap.docs[0];
+        const leagueId = league.id;
+
+        const memberRef = db.collection("leagueMembers").doc(`${leagueId}_${userId}`);
+        const memberSnap = await memberRef.get();
+
+        if (memberSnap.exists) {
+            return bot.sendMessage(chatId, "✅ Ты уже участвуешь в этой лиге.");
+        }
+
+        await memberRef.set({
+            userId,
+            userName,
+            leagueId,
+            joinedAt: Date.now()
+        });
+
+        await db.collection("leagues")
+            .doc(leagueId)
+            .collection("members")
+            .doc(userId.toString())
+            .set({
+                userId,
+                userName,
+                joinedAt: Date.now()
+            });
+
+        return bot.sendMessage(chatId, `🎉 ${userName} присоединился к лиге "${league.data().name}"`);
+    }
+
+    const inviteCode = match?.[1];
+    if (inviteCode) {
+        return joinLeagueByCode(inviteCode, userId, userName, chatId);
+    }
+
+    bot.sendMessage(chatId, "Пожалуйста, введи код лиги:");
+    userStates.set(userId, 'awaiting_invite_code');
+});
+
+async function joinLeagueByCode(inviteCode, userId, userName, chatId) {
+    const leagueSnap = await db.collection("leagues")
+        .where("inviteCode", "==", inviteCode)
+        .limit(1)
+        .get();
+
+    if (leagueSnap.empty) {
+        return bot.sendMessage(chatId, "❌ Лига с таким кодом не найдена.");
+    }
+
+    const league = leagueSnap.docs[0];
+    const leagueId = league.id;
+
+    const memberRef = db.collection("leagueMembers").doc(`${leagueId}_${userId}`);
+    const memberSnap = await memberRef.get();
+
+    if (memberSnap.exists) {
+        return bot.sendMessage(chatId, "✅ Ты уже в этой лиге.");
+    }
+
+    await memberRef.set({
+        userId,
+        userName,
+        leagueId,
+        joinedAt: Date.now()
+    });
+
+    await db.collection("leagues")
+        .doc(leagueId)
+        .collection("members")
+        .doc(userId.toString())
+        .set({
+            userId,
+            userName,
+            joinedAt: Date.now()
+        });
+
+    await bot.sendMessage(chatId, `🎉 Ты присоединился к лиге "${league.data().name}"`);
+}
+
+bot.onText(/\/leaderboard/, async (msg) => {
+    const chatId = msg.chat.id;
+    const isPrivate = msg.chat.type === "private";
+
+    try {
+        let standingsSnap;
+        let leagueName = 'Общая лига';
+
+        if (isPrivate) {
+            standingsSnap = await db.collection("standings")
+                .where("leagueId", "==", "epl")
+                .orderBy("totalPoints", "desc")
+                .limit(10)
+                .get();
+        } else {
+            const leagueSnap = await db.collection("leagues")
+                .where("chatId", "==", chatId)
+                .limit(1)
+                .get();
+
+            if (leagueSnap.empty) {
+                return bot.sendMessage(chatId, "⚠️ Этот чат не привязан к лиге.");
+            }
+
+            const league = leagueSnap.docs[0];
+            const leagueId = league.id;
+            leagueName = league.data().name;
+
+            standingsSnap = await db.collection("leagueStandings")
+                .doc(leagueId)
+                .collection("users")
+                .orderBy("totalPoints", "desc")
+                .limit(10)
+                .get();
+        }
+
+        if (standingsSnap.empty) {
+            return bot.sendMessage(chatId, "Пока нет участников в таблице лидеров.");
+        }
+
+        const leaderboard = standingsSnap.docs.map((doc, index) => {
+            const data = doc.data();
+            const place = index + 1;
+
+            const prefix = place === 1 ? '🥇'
+                         : place === 2 ? '🥈'
+                         : place === 3 ? '🥉'
+                         : ` ${place}.`;
+            return `${prefix} ${data.userName || '—'} — ${data.totalPoints} очков`;
+        }).join("\n");
+
+        await bot.sendMessage(chatId, `📊 <b>Топ игроков — ${leagueName}</b>:\n\n${leaderboard}`, {
+            parse_mode: "HTML"
+        });
+    } catch (err) {
+        console.error("Ошибка при получении таблицы лидеров:", err);
+        bot.sendMessage(chatId, "Произошла ошибка. Попробуй позже.");
+    }
+});
+
+bot.onText(/\/fuck_erbol/, async (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, "Ербол, иди нахуй");
+})
 
 app.post("/", (req, res) => {
     bot.processUpdate(req.body);
