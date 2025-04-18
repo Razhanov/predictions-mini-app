@@ -1,19 +1,19 @@
-import {useTelegramUser} from "./useTelegramUser.js";
 import {useEffect, useState} from "react";
 import {collection, getDocs, query, where} from "firebase/firestore";
 import {db} from "../firebase/config.js"
+import {telegramService} from "../services/telegram.js";
 
 export function useRoundPointsMap() {
-    const telegramUser = useTelegramUser();
+    const tgUserId = telegramService.getUserId();
     const [pointsMap, setPointsMap] = useState({});
 
     useEffect(() => {
         async function fetchPoints() {
-            if (!telegramUser?.id) return;
+            if (!tgUserId) return;
 
             const q = query(
                 collection(db, "roundPoints"),
-                where("userId", "==", telegramUser.id),
+                where("userId", "==", tgUserId),
                 where("leagueId", "==", "epl")
             )
             const snap = await getDocs(q);
@@ -29,7 +29,7 @@ export function useRoundPointsMap() {
         }
 
         fetchPoints();
-    }, [telegramUser?.id]);
+    }, [tgUserId]);
 
     return pointsMap;
 }

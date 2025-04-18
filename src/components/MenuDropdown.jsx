@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import {useNavigate} from "react-router-dom";
 import "./MenuDropdown.css"
-import {useTelegramUser} from "../hooks/useTelegramUser.js";
 import {useIsAdmin} from "../hooks/useIsAdmin.js";
+import {telegramService} from "../services/telegram.js";
 
 function MenuDropdown() {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
-    const telegramUser = useTelegramUser()
-    const isAdmin = useIsAdmin(telegramUser?.id)
+    const tgUserId = telegramService.getUserId();
+    const isAdmin = useIsAdmin(tgUserId);
 
     const toggleMenu = () => setOpen(!open);
     const goTo = (path) => {
