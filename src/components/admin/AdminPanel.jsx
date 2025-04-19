@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {collection, doc, getDocs, serverTimestamp, setDoc, updateDoc} from "firebase/firestore"
 import {db} from "../../firebase/config.js";
-import {useTelegramUser} from "../../hooks/useTelegramUser.js";
 import {useNavigate} from "react-router-dom";
 import {useIsAdmin} from "../../hooks/useIsAdmin.js";
 import {format} from "date-fns";
 import "./AdminPanel.css";
+import {telegramService} from "../../services/telegram.js";
 
 function AdminPanel() {
     const [matches, setMatches] = useState([]);
@@ -19,8 +19,8 @@ function AdminPanel() {
     const [date, setDate] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const telegramUser = useTelegramUser();
-    const isAdmin = useIsAdmin(telegramUser?.id);
+    const tgUserId = telegramService.getUserId();
+    const isAdmin = useIsAdmin(tgUserId);
     const navigate = useNavigate();
 
     const fetchMatches = async () => {
@@ -95,10 +95,10 @@ function AdminPanel() {
     };
 
     useEffect(() => {
-        if (telegramUser && isAdmin === false) {
+        if (tgUserId && isAdmin === false) {
             navigate("/");
         }
-    }, [isAdmin, telegramUser, navigate]);
+    }, [isAdmin, tgUserId, navigate]);
 
     useEffect(() => {
         if (isAdmin) fetchMatches();
