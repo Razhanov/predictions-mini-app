@@ -80,11 +80,29 @@ export function usePredictions() {
     const handleScoreChange = (matchId, field, value) => {
         setPredictions(prev => {
             const updated = {
-                ...prev,
-                [matchId]: {
+                ...prev
+            }
+
+            if (field === 'isBoosted') {
+                const previousBoostedMatchId = Object.entries(prev)
+                    .find(([_, val]) => val?.isBoosted)?.[0];
+
+                if (previousBoostedMatchId && previousBoostedMatchId !== matchId) {
+                    updated[previousBoostedMatchId] = {
+                        ...updated[previousBoostedMatchId],
+                        isBoosted: false
+                    };
+                }
+
+                updated[matchId] = {
+                    ...updated[matchId],
+                    isBoosted: value
+                };
+            } else {
+                updated[matchId] = {
                     ...prev[matchId],
                     [field]: value
-                }
+                };
             }
 
             predictionsRef.current = updated;

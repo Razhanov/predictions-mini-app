@@ -15,7 +15,7 @@ function AdminPanel() {
     const [teamA, setTeamA] = useState("");
     const [teamB, setTeamB] = useState("");
     const [round, setRound] = useState("");
-    const [leagueId, setLeagueId] = useState("epl");
+    const leagueId = "epl";
     const [date, setDate] = useState("");
     const [loading, setLoading] = useState(false);
 

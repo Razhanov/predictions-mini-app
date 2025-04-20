@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {calculatePoints} from "../../functions/scoreService.js";
 import ScoreInput from "./ScoreInput.jsx";
 
-export default function MatchCard({ match, value = {}, onChange }) {
+export default function MatchCard({ match, value = {}, onChange, boostedMatchId, boostedMatchStarted }) {
     const scoreA = value.scoreA;
     const scoreB = value.scoreB;
     const firstScorer = value.firstScorer;
@@ -32,7 +32,7 @@ export default function MatchCard({ match, value = {}, onChange }) {
 
     if (isLive) {
         const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB), firstScorer: firstScorer };
-        const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0 };
+        const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0, firstScorer: match.firstScorer ?? null };
         console.log("predicted", predicted);
         console.log("actual", actual);
         livePoints = calculatePoints(predicted, actual);
@@ -114,6 +114,16 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     </button>
                 </div>
             </div>
+            <button
+                className={`boost-button ${value.isBoosted ? 'active' : ''}`}
+                disabled={
+                    isStarted ||
+                    (boostedMatchId && boostedMatchId !== match.id && boostedMatchStarted)
+                }
+                onClick={() => onChange('isBoosted', !value.isBoosted)}
+            >
+                🔥 Буст x2
+            </button>
             { isStarted && (
                 <button
                     className="friends-predictions-button"

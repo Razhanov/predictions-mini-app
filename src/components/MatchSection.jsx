@@ -21,6 +21,12 @@ const itemVariants = {
 export default function MatchSection({ title, matches, predictions, onChange }) {
     if (matches.length === 0) return null;
 
+    const boostedMatch = matches.find((match) => {
+        const prediction = predictions[match.id];
+        return prediction?.isBoosted
+    });
+    const boostedMatchStarted = boostedMatch?.date?.seconds * 1000 <= Date.now();
+
     return (
         <div className="match-section">
             <h3 className="match-section-title">
@@ -34,7 +40,7 @@ export default function MatchSection({ title, matches, predictions, onChange }) 
                 className="match-section-content"
             >
                 <AnimatePresence>
-                    {matches.map((match) => (
+                    {matches.length > 0 && matches.map((match) => (
                         <motion.div
                             key={match.id}
                             variants={itemVariants}
@@ -48,6 +54,8 @@ export default function MatchSection({ title, matches, predictions, onChange }) 
                                 match={match}
                                 value={predictions[match.id]}
                                 onChange={(field, value) => onChange(match.id, field, value)}
+                                boostedMatchId={boostedMatch?.id}
+                                boostedMatchStarted={boostedMatchStarted}
                             />
                         </motion.div>
                     ))}

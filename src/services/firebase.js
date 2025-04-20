@@ -10,12 +10,13 @@ async function getPredictionByUser(userId) {
 
     const predictions = {};
     snapshot.forEach((doc) => {
-        const { matchId, scoreA, scoreB, points, firstScorer } = doc.data();
+        const { matchId, scoreA, scoreB, points, firstScorer, isBoosted } = doc.data();
         predictions[matchId] = {
             scoreA: scoreA ?? '',
             scoreB: scoreB ?? '',
             points: points ?? null,
-            firstScorer: firstScorer ?? null
+            firstScorer: firstScorer ?? null,
+            isBoosted: isBoosted ?? false
         };
     });
 
@@ -31,18 +32,20 @@ async function savePrediction(userId, userName, predictionsObject) {
 
             const hasScore = !isNaN(value.scoreA) || !isNaN(value.scoreB);
             const hasFirstScorer = value.firstScorer !== undefined && value.firstScorer !== null;
+            const hasBoost = value.isBoosted === true;
 
-            if (!hasScore && !hasFirstScorer) return false;
+            if (!hasScore && !hasFirstScorer && !hasBoost) return false;
 
             const prev = previousPredictions[matchId];
 
             return (
                 !prev ||
                 prev.scoreA !== Number(value.scoreA) ||
-                prev.scoreB !== Number(value.scoreB)) ||
-                prev.firstScorer !== value.firstScorer;
+                prev.scoreB !== Number(value.scoreB) ||
+                prev.firstScorer !== value.firstScorer ||
+                prev.isBoosted !== value.isBoosted);
         })
-        .map(async ([matchId, { scoreA, scoreB, firstScorer }]) => {
+        .map(async ([matchId, { scoreA, scoreB, firstScorer, isBoosted }]) => {
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
 
             const prediction = {
@@ -55,6 +58,7 @@ async function savePrediction(userId, userName, predictionsObject) {
             if (!isNaN(scoreA)) prediction.scoreA = Number(scoreA);
             if (!isNaN(scoreB)) prediction.scoreB = Number(scoreB);
             if (firstScorer !== undefined) prediction.firstScorer = firstScorer;
+            if (isBoosted !== undefined) prediction.isBoosted = isBoosted;
 
             console.log(`💾 Сохраняем прогноз на матч ${matchId}:`, prediction);
 

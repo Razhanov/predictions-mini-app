@@ -139,3 +139,25 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.boost-button {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border: 2px dashed #ffa500;
+    border-radius: 6px;
+    background: #fffbe6;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.boost-button.active {
+    background: #ffbf00;
+    color: white;
+    border: 2px solid #ff9500;
+}
+
+.boost-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
