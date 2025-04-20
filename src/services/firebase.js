@@ -27,7 +27,12 @@ async function savePrediction(userId, userName, predictionsObject) {
 
     const batch = Object.entries(predictionsObject)
         .filter(([matchId, value]) => {
-            if (!value || isNaN(value.scoreA) || isNaN(value.scoreB)) return false;
+            if (!value) return false;
+
+            const hasScore = !isNaN(value.scoreA) || !isNaN(value.scoreB);
+            const hasFirstScorer = value.firstScorer !== undefined && value.firstScorer !== null;
+
+            if (!hasScore && !hasFirstScorer) return false;
 
             const prev = previousPredictions[matchId];
 
@@ -38,17 +43,22 @@ async function savePrediction(userId, userName, predictionsObject) {
                 prev.firstScorer !== value.firstScorer;
         })
         .map(async ([matchId, { scoreA, scoreB, firstScorer }]) => {
-            console.log(`✅ Обновляем прогноз на матч ${matchId}: ${scoreA}–${scoreB}, firstScorer: ${firstScorer}`);
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
-            await setDoc(ref, {
+
+            const prediction = {
                 matchId,
                 userId,
                 userName,
-                scoreA: Number(scoreA),
-                scoreB: Number(scoreB),
-                firstScorer: firstScorer ?? null,
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            };
+
+            if (!isNaN(scoreA)) prediction.scoreA = Number(scoreA);
+            if (!isNaN(scoreB)) prediction.scoreB = Number(scoreB);
+            if (firstScorer !== undefined) prediction.firstScorer = firstScorer;
+
+            console.log(`💾 Сохраняем прогноз на матч ${matchId}:`, prediction);
+
+            await setDoc(ref, prediction, { merge: true });
         });
 
     await Promise.all(batch);
