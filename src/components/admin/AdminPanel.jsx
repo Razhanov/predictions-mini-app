@@ -40,7 +40,7 @@ function AdminPanel() {
     };
 
     const saveResult = async (matchId) => {
-        const { scoreA, scoreB } = results[matchId] || {};
+        const { scoreA, scoreB, firstScorer } = results[matchId] || {};
         if (scoreA === "" || scoreB === "" || isNaN(scoreA) || isNaN(scoreB)) {
             return alert("Введите корректный счёт");
         }
@@ -49,7 +49,8 @@ function AdminPanel() {
         await updateDoc(ref, {
             result: {
                 scoreA: Number(scoreA),
-                scoreB: Number(scoreB)
+                scoreB: Number(scoreB),
+                firstScorer: firstScorer
             },
             isFinished: true
         });
@@ -171,6 +172,18 @@ function AdminPanel() {
                                     value={results[match.id]?.scoreB || ""}
                                     onChange={(e) => handleResultChange(match.id, "scoreB", e.target.value)}
                                 />
+                                <div className="first-scorer-select">
+                                    <label>Кто забил первым:</label>
+                                    <select
+                                        value={results[match.id]?.firstScorer || ""}
+                                        onChange={(e) => handleResultChange(match.id, "firstScorer", e.target.value)}
+                                    >
+                                        <option value="">— Не выбрано —</option>
+                                        <option value="teamA">{match.teamA}</option>
+                                        <option value="teamB">{match.teamB}</option>
+                                        <option value="none">Никто</option>
+                                    </select>
+                                </div>
                                 <button onClick={() => saveResult(match.id)}>Сохранить</button>
                             </div>
                         )}

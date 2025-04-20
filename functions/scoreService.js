@@ -8,8 +8,8 @@
 export function calculatePoints(prediction, result) {
     if (!prediction || !result) return 0;
 
-    const {scoreA: pA, scoreB: pB} = prediction;
-    const {scoreA: rA, scoreB: rB} = result;
+    const {scoreA: pA, scoreB: pB, firstScorer: pFS} = prediction;
+    const {scoreA: rA, scoreB: rB, firstScorer: rFS} = result;
 
     let points = 0;
 
@@ -18,6 +18,7 @@ export function calculatePoints(prediction, result) {
     if (pA === rA) points += 2;
     if (pB === rB) points += 2;
     if ((pA - pB) === (rA - rB)) points += 3;
+    if (pFS && rFS && pFS === rFS) points += 3;
 
     return points;
 }

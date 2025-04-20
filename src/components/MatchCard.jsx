@@ -7,6 +7,7 @@ import ScoreInput from "./ScoreInput.jsx";
 export default function MatchCard({ match, value = {}, onChange }) {
     const scoreA = value.scoreA;
     const scoreB = value.scoreB;
+    const firstScorer = value.firstScorer;
 
     const inputARef = useRef(null);
     const inputBRef = useRef(null);
@@ -30,7 +31,7 @@ export default function MatchCard({ match, value = {}, onChange }) {
     let livePoints = 0;
 
     if (isLive) {
-        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB) };
+        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB), firstScorer: firstScorer };
         const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0 };
         console.log("predicted", predicted);
         console.log("actual", actual);
@@ -91,21 +92,21 @@ export default function MatchCard({ match, value = {}, onChange }) {
                 <div className="first-scorer-label">Какая команда откроет счёт?</div>
                 <div className="first-scorer-options">
                     <button
-                        className={`first-scorer-button ${value.firstScorer === 'teamA' ? 'selected' : ''}`}
+                        className={`first-scorer-button ${firstScorer === 'teamA' ? 'selected' : ''}`}
                         onClick={() => onChange('firstScorer', 'teamA')}
                         disabled={isStarted}
                     >
                         {match.teamA}
                     </button>
                     <button
-                        className={`first-scorer-button ${value.firstScorer === 'none' ? 'selected' : ''}`}
+                        className={`first-scorer-button ${firstScorer === 'none' ? 'selected' : ''}`}
                         onClick={() => onChange('firstScorer', 'none')}
                         disabled={isStarted}
                     >
                         Никто
                     </button>
                     <button
-                        className={`first-scorer-button ${value.firstScorer === 'teamB' ? 'selected' : ''}`}
+                        className={`first-scorer-button ${firstScorer === 'teamB' ? 'selected' : ''}`}
                         onClick={() => onChange('firstScorer', 'teamB')}
                         disabled={isStarted}
                     >
