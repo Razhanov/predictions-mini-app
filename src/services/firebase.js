@@ -10,11 +10,12 @@ async function getPredictionByUser(userId) {
 
     const predictions = {};
     snapshot.forEach((doc) => {
-        const { matchId, scoreA, scoreB, points } = doc.data();
+        const { matchId, scoreA, scoreB, points, firstScorer } = doc.data();
         predictions[matchId] = {
             scoreA: scoreA ?? '',
             scoreB: scoreB ?? '',
-            points: points ?? null
+            points: points ?? null,
+            firstScorer: firstScorer ?? null
         };
     });
 
@@ -30,10 +31,14 @@ async function savePrediction(userId, userName, predictionsObject) {
 
             const prev = previousPredictions[matchId];
 
-            return (!prev || prev.scoreA !== Number(value.scoreA) || prev.scoreB !== Number(value.scoreB));
+            return (
+                !prev ||
+                prev.scoreA !== Number(value.scoreA) ||
+                prev.scoreB !== Number(value.scoreB)) ||
+                prev.firstScorer !== value.firstScorer;
         })
-        .map(async ([matchId, { scoreA, scoreB }]) => {
-            console.log(`✅ Обновляем прогноз на матч ${matchId}: ${scoreA}–${scoreB}`);
+        .map(async ([matchId, { scoreA, scoreB, firstScorer }]) => {
+            console.log(`✅ Обновляем прогноз на матч ${matchId}: ${scoreA}–${scoreB}, firstScorer: ${firstScorer}`);
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
             await setDoc(ref, {
                 matchId,
@@ -41,6 +46,7 @@ async function savePrediction(userId, userName, predictionsObject) {
                 userName,
                 scoreA: Number(scoreA),
                 scoreB: Number(scoreB),
+                firstScorer: firstScorer ?? null,
                 updatedAt: serverTimestamp()
             }, { merge: true });
         });

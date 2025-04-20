@@ -100,3 +100,42 @@
     color: #bbb;
     font-size: 14px;
 }
+
+.first-scorer {
+    margin-top: 12px;
+}
+
+.first-scorer-label {
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.first-scorer-options {
+    display: flex;
+    gap: 8px;
+}
+
+.first-scorer-button {
+    flex: 1;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.first-scorer-button:hover {
+    background-color: #e0e0e0;
+}
+
+.first-scorer-button.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.first-scorer-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

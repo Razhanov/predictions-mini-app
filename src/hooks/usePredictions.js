@@ -30,7 +30,9 @@ export function usePredictions() {
         const hasChanges = Object.keys(updated).some((matchId) => {
             const currentPrediction = updated[matchId];
             const initialPrediction = initialPredictions[matchId] ?? {};
-            return currentPrediction?.scoreA !== initialPrediction.scoreB || currentPrediction?.scoreB !== initialPrediction.scoreB;
+            return currentPrediction?.scoreA !== initialPrediction.scoreB ||
+                currentPrediction?.scoreB !== initialPrediction.scoreB ||
+                currentPrediction?.firstScorer !== initialPrediction.firstScorer;
         });
 
         const hasValid = Object.values(updated).some(isValidPrediction);

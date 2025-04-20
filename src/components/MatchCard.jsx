@@ -87,6 +87,32 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     ref={inputBRef}
                 />
             </div>
+            <div className="first-scorer">
+                <div className="first-scorer-label">Какая команда откроет счёт?</div>
+                <div className="first-scorer-options">
+                    <button
+                        className={`first-scorer-button ${value.firstScorer === 'teamA' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'teamA')}
+                        disabled={isStarted}
+                    >
+                        {match.teamA}
+                    </button>
+                    <button
+                        className={`first-scorer-button ${value.firstScorer === 'none' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'none')}
+                        disabled={isStarted}
+                    >
+                        Никто
+                    </button>
+                    <button
+                        className={`first-scorer-button ${value.firstScorer === 'teamB' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'teamB')}
+                        disabled={isStarted}
+                    >
+                        {match.teamB}
+                    </button>
+                </div>
+            </div>
             { isStarted && (
                 <button
                     className="friends-predictions-button"
