@@ -57,6 +57,7 @@ export function usePredictions() {
         try {
             await firebaseService.savePrediction(userId, userName, currentPredictions);
             telegramService.showAlert('Прогнозы сохранены ✅');
+            telegramService.hideMainButton();
         } catch (err) {
             console.error("Ошибка при сохранении:", err);
             telegramService.showAlert('Ошибка при сохранении прогнозов ❌');
