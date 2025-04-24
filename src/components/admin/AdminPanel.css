@@ -109,3 +109,15 @@
     width: 40px;
     padding: 4px;
 }
+
+.first-scorer-select {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+}
+
+.first-scorer-select select {
+    margin-top: 4px;
+    padding: 4px;
+}

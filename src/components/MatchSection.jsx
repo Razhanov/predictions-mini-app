@@ -18,7 +18,7 @@ const itemVariants = {
     exit: { opacity: 0, y: 10 }
 };
 
-export default function MatchSection({ title, matches, predictions, onChange }) {
+export default function MatchSection({ title, matches, predictions, onChange, boostAvailabilityMap }) {
     if (matches.length === 0) return null;
 
     return (
@@ -34,7 +34,7 @@ export default function MatchSection({ title, matches, predictions, onChange }) 
                 className="match-section-content"
             >
                 <AnimatePresence>
-                    {matches.map((match) => (
+                    {matches.length > 0 && matches.map((match) => (
                         <motion.div
                             key={match.id}
                             variants={itemVariants}
@@ -48,6 +48,8 @@ export default function MatchSection({ title, matches, predictions, onChange }) 
                                 match={match}
                                 value={predictions[match.id]}
                                 onChange={(field, value) => onChange(match.id, field, value)}
+                                boostDisabled={boostAvailabilityMap[match.id]?.disabled}
+                                isBoosted={predictions[match.id]?.isBoosted}
                             />
                         </motion.div>
                     ))}

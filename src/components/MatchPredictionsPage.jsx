@@ -39,7 +39,8 @@ function MatchPredictionsPage() {
                 {predictions.map((prediction, index) => {
                     const points = hasResult ? prediction.points : calculatePoints(prediction, {
                         scoreA: match.liveScoreA ?? 0,
-                        scoreB: match.liveScoreB ?? 0
+                        scoreB: match.liveScoreB ?? 0,
+                        firstScorer: match.firstScorer ?? null
                     });
                     return (
                         <div key={index} className="prediction-card">

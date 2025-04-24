@@ -10,11 +10,13 @@ async function getPredictionByUser(userId) {
 
     const predictions = {};
     snapshot.forEach((doc) => {
-        const { matchId, scoreA, scoreB, points } = doc.data();
+        const { matchId, scoreA, scoreB, points, firstScorer, isBoosted } = doc.data();
         predictions[matchId] = {
             scoreA: scoreA ?? '',
             scoreB: scoreB ?? '',
-            points: points ?? null
+            points: points ?? null,
+            firstScorer: firstScorer ?? null,
+            isBoosted: isBoosted ?? false
         };
     });
 
@@ -26,23 +28,41 @@ async function savePrediction(userId, userName, predictionsObject) {
 
     const batch = Object.entries(predictionsObject)
         .filter(([matchId, value]) => {
-            if (!value || isNaN(value.scoreA) || isNaN(value.scoreB)) return false;
+            if (!value) return false;
+
+            const hasScore = !isNaN(value.scoreA) || !isNaN(value.scoreB);
+            const hasFirstScorer = value.firstScorer !== undefined && value.firstScorer !== null;
+            const hasBoost = value.isBoosted === true;
+
+            if (!hasScore && !hasFirstScorer && !hasBoost) return false;
 
             const prev = previousPredictions[matchId];
 
-            return (!prev || prev.scoreA !== Number(value.scoreA) || prev.scoreB !== Number(value.scoreB));
+            return (
+                !prev ||
+                prev.scoreA !== Number(value.scoreA) ||
+                prev.scoreB !== Number(value.scoreB) ||
+                prev.firstScorer !== value.firstScorer ||
+                prev.isBoosted !== value.isBoosted);
         })
-        .map(async ([matchId, { scoreA, scoreB }]) => {
-            console.log(`✅ Обновляем прогноз на матч ${matchId}: ${scoreA}–${scoreB}`);
+        .map(async ([matchId, { scoreA, scoreB, firstScorer, isBoosted }]) => {
             const ref = doc(db, PREDICTIONS_COLLECTION, `${userId}_${matchId}`);
-            await setDoc(ref, {
+
+            const prediction = {
                 matchId,
                 userId,
                 userName,
-                scoreA: Number(scoreA),
-                scoreB: Number(scoreB),
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            };
+
+            if (scoreA !== '' && !isNaN(scoreA)) prediction.scoreA = Number(scoreA);
+            if (scoreB !== '' && !isNaN(scoreB)) prediction.scoreB = Number(scoreB);
+            if (firstScorer !== undefined) prediction.firstScorer = firstScorer;
+            if (isBoosted !== undefined) prediction.isBoosted = isBoosted;
+
+            console.log(`💾 Сохраняем прогноз на матч ${matchId}:`, prediction);
+
+            await setDoc(ref, prediction, { merge: true });
         });
 
     await Promise.all(batch);

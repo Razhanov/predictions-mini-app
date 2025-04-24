@@ -30,7 +30,9 @@ export function usePredictions() {
         const hasChanges = Object.keys(updated).some((matchId) => {
             const currentPrediction = updated[matchId];
             const initialPrediction = initialPredictions[matchId] ?? {};
-            return currentPrediction?.scoreA !== initialPrediction.scoreB || currentPrediction?.scoreB !== initialPrediction.scoreB;
+            return currentPrediction?.scoreA !== initialPrediction.scoreB ||
+                currentPrediction?.scoreB !== initialPrediction.scoreB ||
+                currentPrediction?.firstScorer !== initialPrediction.firstScorer;
         });
 
         const hasValid = Object.values(updated).some(isValidPrediction);
@@ -55,6 +57,7 @@ export function usePredictions() {
         try {
             await firebaseService.savePrediction(userId, userName, currentPredictions);
             telegramService.showAlert('Прогнозы сохранены ✅');
+            telegramService.hideMainButton();
         } catch (err) {
             console.error("Ошибка при сохранении:", err);
             telegramService.showAlert('Ошибка при сохранении прогнозов ❌');
@@ -77,11 +80,29 @@ export function usePredictions() {
     const handleScoreChange = (matchId, field, value) => {
         setPredictions(prev => {
             const updated = {
-                ...prev,
-                [matchId]: {
+                ...prev
+            }
+
+            if (field === 'isBoosted') {
+                const previousBoostedMatchId = Object.entries(prev)
+                    .find(([_, val]) => val?.isBoosted)?.[0];
+
+                if (previousBoostedMatchId && previousBoostedMatchId !== matchId) {
+                    updated[previousBoostedMatchId] = {
+                        ...updated[previousBoostedMatchId],
+                        isBoosted: false
+                    };
+                }
+
+                updated[matchId] = {
+                    ...updated[matchId],
+                    isBoosted: value
+                };
+            } else {
+                updated[matchId] = {
                     ...prev[matchId],
                     [field]: value
-                }
+                };
             }
 
             predictionsRef.current = updated;

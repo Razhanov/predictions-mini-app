@@ -4,9 +4,10 @@ import {useNavigate} from "react-router-dom";
 import {calculatePoints} from "../../functions/scoreService.js";
 import ScoreInput from "./ScoreInput.jsx";
 
-export default function MatchCard({ match, value = {}, onChange }) {
+export default function MatchCard({ match, value = {}, onChange, boostDisabled, isBoosted }) {
     const scoreA = value.scoreA;
     const scoreB = value.scoreB;
+    const firstScorer = value.firstScorer;
 
     const inputARef = useRef(null);
     const inputBRef = useRef(null);
@@ -30,8 +31,8 @@ export default function MatchCard({ match, value = {}, onChange }) {
     let livePoints = 0;
 
     if (isLive) {
-        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB) };
-        const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0 };
+        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB), firstScorer: firstScorer, isBoosted: isBoosted };
+        const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0, firstScorer: match.firstScorer ?? null };
         console.log("predicted", predicted);
         console.log("actual", actual);
         livePoints = calculatePoints(predicted, actual);
@@ -87,6 +88,49 @@ export default function MatchCard({ match, value = {}, onChange }) {
                     ref={inputBRef}
                 />
             </div>
+            <div className="first-scorer">
+                <div className="first-scorer-label">Какая команда откроет счёт?</div>
+                <div className="first-scorer-options">
+                    <button
+                        className={`first-scorer-button ${firstScorer === 'teamA' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'teamA')}
+                        disabled={isStarted}
+                    >
+                        {match.teamA}
+                    </button>
+                    <button
+                        className={`first-scorer-button ${firstScorer === 'none' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'none')}
+                        disabled={isStarted}
+                    >
+                        Никто
+                    </button>
+                    <button
+                        className={`first-scorer-button ${firstScorer === 'teamB' ? 'selected' : ''}`}
+                        onClick={() => onChange('firstScorer', 'teamB')}
+                        disabled={isStarted}
+                    >
+                        {match.teamB}
+                    </button>
+                </div>
+            </div>
+            <button
+                className={`boost-button ${isBoosted ? 'active' : ''}`}
+                disabled={boostDisabled}
+                onClick={() => onChange('isBoosted', !isBoosted)}
+                title={
+                    boostDisabled
+                        ? "Буст уже использован на сыгранном матче или этот матч начался"
+                        : "Удвоить очки в этом матче"
+                }
+            >
+                🔥 Буст x2
+            </button>
+            {boostDisabled && !isBoosted && (
+                <div className="boost-disabled-info">
+                    Буст уже активирован на другом сыгранном матче
+                </div>
+            )}
             { isStarted && (
                 <button
                     className="friends-predictions-button"
