@@ -34,6 +34,49 @@ function App() {
         return acc;
     }, { upcomingMatches: [], finishedMatches: [] });
 
+    const allMatches = useMemo(() => [...upcomingMatches, ...finishedMatches], [upcomingMatches, finishedMatches]);
+
+    const boostedMatch = useMemo(() => {
+        return Object.entries(predictions).find(([_, value]) => value?.isBoosted);
+    }, [predictions]);
+
+    const boostedMatchId = boostedMatch?.[0] ?? null;
+
+    const boostedMatchStarted = useMemo(() => {
+        if (!boostedMatchId) return false;
+
+        const match = allMatches.find(m => m.id === boostedMatchId);
+        if (!match?.date) return false;
+
+        const start = match.date instanceof Date
+            ? match.date.getTime()
+            : (match.date.seconds ?? 0) * 1000;
+
+        return start <= Date.now();
+    }, [boostedMatchId, allMatches]);
+
+    const boostAvailabilityMap = useMemo(() => {
+        const map = {};
+        const now = Date.now();
+
+        allMatches.forEach((match) => {
+            const matchStart = match.date instanceof Date
+                ? match.date.getTime()
+                : (match.date?.seconds ?? 0) * 1000;
+
+            const thisMatchStarted = matchStart <= now;
+            const isThisMatchBoosted = boostedMatchId === match.id;
+            const disabled = thisMatchStarted || (!isThisMatchBoosted && boostedMatchId && boostedMatchStarted);
+
+            map[match.id] = {
+                disabled,
+                isThisMatchBoosted
+            };
+        });
+
+        return map;
+    }, [allMatches, boostedMatchId, boostedMatchStarted]);
+
     return (
         <div className="container">
             <div className="app-header">
@@ -65,6 +108,7 @@ function App() {
                             onToggle={() => setShowUpcoming(prev => !prev)}
                             predictions={predictions}
                             onChange={handleScoreChange}
+                            boostAvailabilityMap={boostAvailabilityMap}
                         />
                         <MatchSection
                             title="Сыгранные матчи"
@@ -73,6 +117,7 @@ function App() {
                             onToggle={() => setShowFinished(prev => !prev)}
                             predictions={predictions}
                             onChange={handleScoreChange}
+                            boostAvailabilityMap={boostAvailabilityMap}
                         />
                     </div>
                 </>

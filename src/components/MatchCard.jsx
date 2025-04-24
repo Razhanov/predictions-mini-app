@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {calculatePoints} from "../../functions/scoreService.js";
 import ScoreInput from "./ScoreInput.jsx";
 
-export default function MatchCard({ match, value = {}, onChange, boostedMatchId, boostedMatchStarted }) {
+export default function MatchCard({ match, value = {}, onChange, boostDisabled, isBoosted }) {
     const scoreA = value.scoreA;
     const scoreB = value.scoreB;
     const firstScorer = value.firstScorer;
@@ -31,7 +31,7 @@ export default function MatchCard({ match, value = {}, onChange, boostedMatchId,
     let livePoints = 0;
 
     if (isLive) {
-        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB), firstScorer: firstScorer };
+        const predicted = { scoreA: Number(scoreA), scoreB: Number(scoreB), firstScorer: firstScorer, isBoosted: isBoosted };
         const actual = { scoreA: match.liveScoreA ?? 0, scoreB: match.liveScoreB ?? 0, firstScorer: match.firstScorer ?? null };
         console.log("predicted", predicted);
         console.log("actual", actual);
@@ -115,15 +115,22 @@ export default function MatchCard({ match, value = {}, onChange, boostedMatchId,
                 </div>
             </div>
             <button
-                className={`boost-button ${value.isBoosted ? 'active' : ''}`}
-                disabled={
-                    isStarted ||
-                    (boostedMatchId && boostedMatchId !== match.id && boostedMatchStarted)
+                className={`boost-button ${isBoosted ? 'active' : ''}`}
+                disabled={boostDisabled}
+                onClick={() => onChange('isBoosted', !isBoosted)}
+                title={
+                    boostDisabled
+                        ? "Буст уже использован на сыгранном матче или этот матч начался"
+                        : "Удвоить очки в этом матче"
                 }
-                onClick={() => onChange('isBoosted', !value.isBoosted)}
             >
                 🔥 Буст x2
             </button>
+            {boostDisabled && !isBoosted && (
+                <div className="boost-disabled-info">
+                    Буст уже активирован на другом сыгранном матче
+                </div>
+            )}
             { isStarted && (
                 <button
                     className="friends-predictions-button"

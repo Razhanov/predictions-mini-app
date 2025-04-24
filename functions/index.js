@@ -38,7 +38,12 @@ export const onMatchResultUpdate = onDocumentUpdated(
 
             predictionsSnap.forEach((doc) => {
                 const data = doc.data();
-                const prediction = { scoreA: data.scoreA, scoreB: data.scoreB };
+                const prediction = {
+                    scoreA: data.scoreA,
+                    scoreB: data.scoreB,
+                    firstScorer: data.firstScorer,
+                    isBoosted: data.isBoosted
+                };
                 const userId = data.userId;
                 const userName = data.userName || userId;
 

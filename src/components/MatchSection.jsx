@@ -18,14 +18,8 @@ const itemVariants = {
     exit: { opacity: 0, y: 10 }
 };
 
-export default function MatchSection({ title, matches, predictions, onChange }) {
+export default function MatchSection({ title, matches, predictions, onChange, boostAvailabilityMap }) {
     if (matches.length === 0) return null;
-
-    const boostedMatch = matches.find((match) => {
-        const prediction = predictions[match.id];
-        return prediction?.isBoosted
-    });
-    const boostedMatchStarted = boostedMatch?.date?.seconds * 1000 <= Date.now();
 
     return (
         <div className="match-section">
@@ -54,8 +48,8 @@ export default function MatchSection({ title, matches, predictions, onChange }) 
                                 match={match}
                                 value={predictions[match.id]}
                                 onChange={(field, value) => onChange(match.id, field, value)}
-                                boostedMatchId={boostedMatch?.id}
-                                boostedMatchStarted={boostedMatchStarted}
+                                boostDisabled={boostAvailabilityMap[match.id]?.disabled}
+                                isBoosted={predictions[match.id]?.isBoosted}
                             />
                         </motion.div>
                     ))}

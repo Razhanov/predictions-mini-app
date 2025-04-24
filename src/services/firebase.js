@@ -55,8 +55,8 @@ async function savePrediction(userId, userName, predictionsObject) {
                 updatedAt: serverTimestamp()
             };
 
-            if (!isNaN(scoreA)) prediction.scoreA = Number(scoreA);
-            if (!isNaN(scoreB)) prediction.scoreB = Number(scoreB);
+            if (scoreA !== '' && !isNaN(scoreA)) prediction.scoreA = Number(scoreA);
+            if (scoreB !== '' && !isNaN(scoreB)) prediction.scoreB = Number(scoreB);
             if (firstScorer !== undefined) prediction.firstScorer = firstScorer;
             if (isBoosted !== undefined) prediction.isBoosted = isBoosted;
 
