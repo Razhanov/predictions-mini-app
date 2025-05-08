@@ -88,33 +88,47 @@ export const onMatchCreated = onDocumentCreated({
     if (!match || !match.date?.seconds) return;
 
     const matchDate = new Date(match.date.seconds * 1000);
-    const reminderDate = new Date(matchDate.getTime() - 60 * 60 * 1000);
-
     const queuePath = tasksClient.queuePath(
         "predictions-tg",
         "us-central1",
         "reminders"
     );
-
     const url = "https://sendreminder-7ybb36rzja-uc.a.run.app";
+    const chatReminderUrl = "https://sendleaguechatreminder-7ybb36rzja-uc.a.run.app";
     const body = JSON.stringify({ matchId });
-    const taskId = `match_${matchId}_${reminderDate.getTime()}`;
+    const [oneHourBefore, thirtyMinutesBefore] = [
+        new Date(matchDate.getTime() - 60 * 60 * 1000),
+        new Date(matchDate.getTime() - 30 * 60 * 1000),
+    ];
 
-    const task = {
-        name: `${queuePath}/tasks/${taskId}`,
-        httpRequest: {
-            httpMethod: "POST",
-            url,
-            headers: { "Content-Type": "application/json" },
-            body: Buffer.from(body).toString("base64"),
-        },
-        scheduleTime: {
-            seconds: Math.floor(reminderDate.getTime() / 1000),
-        }
+    const createReminderTask = async (name, url, runAt) => {
+        const task = {
+            name: `${queuePath}/tasks/${name}`,
+            httpRequest: {
+                httpMethod: "POST",
+                url,
+                headers: { "Content-Type": "application/json" },
+                body: Buffer.from(body).toString("base64"),
+            },
+            scheduleTime: {
+                seconds: Math.floor(runAt.getTime() / 1000),
+            },
+        };
+        await tasksClient.createTask({ parent: queuePath, task });
+        console.log(`📅 Task "${name}" scheduled at ${runAt.toISOString()}`);
     };
 
-    await tasksClient.createTask({ parent: queuePath, task });
-    console.log(`📅 Reminder task created for match ${matchId} at ${reminderDate.toISOString()}`);
+    await createReminderTask(
+        `personal_${matchId}_${oneHourBefore.getTime()}`,
+        url,
+        oneHourBefore
+    );
+
+    await createReminderTask(
+        `leagueChat_${matchId}_${thirtyMinutesBefore.getTime()}`,
+        chatReminderUrl,
+        thirtyMinutesBefore
+    );
 });
 
 async function recalculateTotalPoints(userId, userName, leagueId) {
@@ -282,3 +296,4 @@ export const onStandingsUpdated = onDocumentUpdated({
 
 export { telegramBot } from "./telegramBot.js";
 export { sendReminder } from "./reminders/sendReminder.js";
+export { sendLeagueChatReminder } from "./reminders/sendLeagueChatReminder.js";

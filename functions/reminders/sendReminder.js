@@ -36,8 +36,16 @@ app.post("/", async (req, res) => {
 
     const leagueMembersSnap = await db.collection('leagueMembers').get();
 
-    const usersToNotify = leagueMembersSnap.docs
-        .map((doc) => doc.data())
+    const allMembers = leagueMembersSnap.docs.map((doc) => doc.data())
+
+    const userMap = new Map();
+    for (const member of allMembers) {
+        if (!userMap.has(member.userId)) {
+            userMap.set(member.userId, member);
+        }
+    }
+
+    const usersToNotify = Array.from(userMap.values())
         .filter((member) => !predictedUserIds.has(member.userId));
 
     for (const user of usersToNotify) {
