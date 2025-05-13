@@ -1,0 +1,23 @@
+.match-header {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.match-header .teams {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.match-header .global-score {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #888;
+}
