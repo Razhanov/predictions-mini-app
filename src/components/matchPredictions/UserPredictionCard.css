@@ -1,0 +1,36 @@
+.prediction-card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prediction-card .user-name {
+    font-weight: 500;
+    font-size: 15px;
+    color: #333;
+    max-width: 40%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.prediction-card .score {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.prediction-card .points {
+    font-size: 13px;
+    color: #888;
+}
+
+.my-prediction {
+    border: 2px solid #0088cc;
+    background-color: #e7f5ff;
+}

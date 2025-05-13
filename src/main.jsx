@@ -1,4 +1,4 @@
-import MatchPredictionsPage from "./components/MatchPredictionsPage.jsx";
+import MatchPredictionsPage from "./components/matchPredictions/MatchPredictionsPage.jsx";
 
 console.log('main.jsx работает');
 import React from 'react';

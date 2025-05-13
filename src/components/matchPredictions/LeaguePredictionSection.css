@@ -1,0 +1,27 @@
+
+.league-section {
+    margin-top: 20px;
+}
+
+.league-section h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.show-all-button {
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.show-all-button:hover {
+    background-color: #f2f2f7;
+}
+
+.show-all-button .user-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333; /* ← такой же, как у .prediction-card .user-name */
+}
