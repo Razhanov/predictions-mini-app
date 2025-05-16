@@ -18,6 +18,14 @@ export function useMatchPredictions(matchId, userId) {
 
             setMatch(matchData);
             const userPrediction = allPredictions.find(pred => String(pred.userId) === String(userId));
+            if (userPrediction.points === undefined) {
+                userPrediction.points = calculatePoints(userPrediction, {
+                    scoreA: matchData.liveScoreA ?? 0,
+                    scoreB: matchData.liveScoreB ?? 0,
+                    firstScorer: matchData.firstScorer ?? null,
+                    isBoosted: matchData.isBoosted
+                })
+            }
             setMyPrediction(userPrediction);
 
             const leagueSections = userLeagues.map((league) => {
@@ -30,7 +38,8 @@ export function useMatchPredictions(matchId, userId) {
                             : calculatePoints(prediction, {
                                 scoreA: matchData.liveScoreA ?? 0,
                                 scoreB: matchData.liveScoreB ?? 0,
-                                firstScorer: matchData.firstScorer ?? null
+                                firstScorer: matchData.firstScorer ?? null,
+                                isBoosted: matchData.isBoosted
                             })
                     }))
                     .sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
