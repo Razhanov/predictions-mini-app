@@ -19,18 +19,50 @@
     text-overflow: ellipsis;
 }
 
+.score-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
 .prediction-card .score {
     font-size: 16px;
     font-weight: 600;
     color: #222;
 }
 
-.prediction-card .points {
+.points {
     font-size: 13px;
+    color: #444;
+}
+
+.points::after {
+    font-style: italic;
+    font-weight: normal;
     color: #888;
 }
 
 .my-prediction {
     border: 2px solid #0088cc;
     background-color: #e7f5ff;
+}
+
+.first-scorer {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.boost-label {
+    display: inline-block;
+    margin-left: 6px;
+    background-color: #fff8dc;
+    color: #d28500;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid #f1d28f;
 }

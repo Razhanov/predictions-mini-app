@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import UserPredictionCard from "./UserPredictionCard.jsx";
 import "./LeaguePredictionSection.css";
 
-function LeaguePredictionSection({ league }) {
+function LeaguePredictionSection({ league, match }) {
     const [expanded, setExpanded] = useState(false);
 
     const visiblePredictions = expanded
@@ -13,7 +13,13 @@ function LeaguePredictionSection({ league }) {
         <div className="league-section">
             <h4>{league.name}</h4>
             {visiblePredictions.map(prediction => (
-                <UserPredictionCard key={prediction.userId} prediction={prediction} />
+                <UserPredictionCard
+                    key={prediction.userId}
+                    prediction={prediction}
+                    teamA={match.teamA}
+                    teamB={match.teamB}
+                    hasResult={!!match.result}
+                />
             ))}
             {league.predictions.length > 5 && (
                 <div className="prediction-card show-all-button" onClick={() => setExpanded(!expanded)}>

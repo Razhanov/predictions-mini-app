@@ -1,12 +1,28 @@
 import React from "react";
 import "./UserPredictionCard.css";
 
-function UserPredictionCard({ prediction, isCurrentUser = false }) {
+function UserPredictionCard({ prediction, isCurrentUser = false, teamA, teamB, hasResult }) {
+    const firstScorerText =
+        prediction.firstScorer === "teamA"
+            ? `(${teamA})`
+            : prediction.firstScorer === "teamB"
+            ? `(${teamB})`
+            : "(—)";
+
+    const boosted = prediction.isBoosted === true;
+    const isLive = !hasResult;
+
     return (
         <div className={`prediction-card ${isCurrentUser ? "my-prediction" : ""}`}>
             <div className="user-name">{prediction.userName ?? prediction.userId}</div>
-            <div className="score">{prediction.scoreA} – {prediction.scoreB}</div>
-            <div className="points">{prediction.points ?? "0"} очков</div>
+            <div className="score-block">
+                <div className="score">{prediction.scoreA} – {prediction.scoreB}</div>
+                <div className="first-scorer">{firstScorerText}</div>
+            </div>
+            <div className="points">
+                {prediction.points} очков{isLive ? " LIVE" : ""}
+                {boosted && <span className="boost-label">⚡ x2</span>}
+            </div>
         </div>
     );
 }

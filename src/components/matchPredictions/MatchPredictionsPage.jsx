@@ -19,9 +19,15 @@ function MatchPredictionsPage() {
         <div className="container">
             <button className="back-button" onClick={() => navigate(-1)}>← Назад</button>
             <MatchHeader match={match} />
-            {myPrediction && <UserPredictionCard prediction={myPrediction} isCurrentUser />}
+            {myPrediction && <UserPredictionCard
+                prediction={myPrediction}
+                isCurrentUser
+                teamA={match.teamA}
+                teamB={match.teamB}
+                hasResult={!!match.result}
+            />}
             {leagues.map(league => (
-                <LeaguePredictionSection key={league.id} league={league} />
+                <LeaguePredictionSection key={league.id} league={league} match={match} />
             ))}
         </div>
     );
