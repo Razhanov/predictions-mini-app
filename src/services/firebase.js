@@ -16,7 +16,9 @@ async function getPredictionByUser(userId) {
             scoreB: scoreB ?? '',
             points: points ?? null,
             firstScorer: firstScorer ?? null,
-            isBoosted: isBoosted ?? false
+            isBoosted: isBoosted ?? false,
+            matchId: matchId,
+            userId: userId
         };
     });
 
