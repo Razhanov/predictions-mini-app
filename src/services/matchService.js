@@ -12,7 +12,7 @@ async function getAllMatches(tournamentId = "epl") {
         collection(db, MATCHES_COLLECTION),
         where("tournamentId", "==", tournamentId),
         where("seasonId", "==", seasonId),
-        // orderBy("date", "asc")
+        orderBy("date", "asc")
     );
     const snapshot = await getDocs(q);
 
