@@ -6,6 +6,7 @@ import {useIsAdmin} from "../../hooks/useIsAdmin.js";
 import {format} from "date-fns";
 import "./AdminPanel.css";
 import {telegramService} from "../../services/telegram.js";
+import {matchService} from "../../services/matchService.js";
 
 function AdminPanel() {
     const [matches, setMatches] = useState([]);
@@ -24,9 +25,13 @@ function AdminPanel() {
     const navigate = useNavigate();
 
     const fetchMatches = async () => {
-        const snapshot = await getDocs(collection(db, "matches"));
-        const result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMatches(result.sort((a, b) => a.date?.seconds - b.date?.seconds));
+        const list = await matchService.getAllMatches();
+        const sorted = list.sort((a, b) => {
+            if (!!a.result !== !!b.result) return a.result ? 1 : -1;
+            return new Date(a.date?.seconds ? a.date.seconds * 1000 : a.date) -
+                   new Date(b.date?.seconds ? a.date.seconds * 1000 : a.date);
+        });
+        setMatches(sorted);
     };
 
     const handleResultChange = (matchId, team, value) => {
@@ -44,16 +49,7 @@ function AdminPanel() {
         if (scoreA === "" || scoreB === "" || isNaN(scoreA) || isNaN(scoreB)) {
             return alert("Введите корректный счёт");
         }
-
-        const ref = doc(db, "matches", matchId);
-        await updateDoc(ref, {
-            result: {
-                scoreA: Number(scoreA),
-                scoreB: Number(scoreB),
-                firstScorer: firstScorer
-            },
-            isFinished: true
-        });
+        await matchService.saveResult(matchId, {scoreA, scoreB, firstScorer});
 
         alert("Результат сохранён");
         fetchMatches();
@@ -65,28 +61,13 @@ function AdminPanel() {
         setLoading(true);
 
         try {
-            const matchDate = new Date(date);
-            const month = format(matchDate, 'LLLL').toLowerCase();
-            const year = matchDate.getFullYear();
-
-            const matchId = `${round}_${teamA.trim().toLowerCase()}_${teamB.trim().toLowerCase()}_${month}_${year}`.replace(/\s+/g, "_");
-
-            const matchRef = doc(db, "matches", matchId);
-
-            await setDoc(matchRef, {
-                teamA,
-                teamB,
-                round: Number(round),
-                leagueId,
-                isFinished: false,
-                date: new Date(date),
-                createdAt: serverTimestamp()
-            });
+            await matchService.createMatch({teamA, teamB, round, date});
             setTeamA("");
             setTeamB("");
             setRound("");
             setDate("");
             alert("Матч успешно создан!");
+            fetchMatches();
         } catch (error) {
             console.error("Ошибка при создании матча:", error);
             alert("Ошибка при создании матча.");
