@@ -389,21 +389,17 @@ bot.onText(/\/leaderboard/, async (msg) => {
     const isPrivate = msg.chat.type === "private";
 
     try {
-        let rows = [];
+        let standingsSnap;
         let leagueName = 'Общая лига';
 
         if (isPrivate) {
             const seasonId = await getActiveSeasonId();
-            const standingsSnap = await db.collection("standings")
+            standingsSnap = await db.collection("standings")
                 .where("leagueId", "==", "epl")
                 .where("seasonId", "==", seasonId)
                 .orderBy("totalPoints", "desc")
                 .limit(10)
                 .get();
-            rows = standingsSnap.docs.map(doc => ({
-                userName: doc.get("userName") || String(doc.get("userId")),
-                totalPoints: doc.get("totalPoints") || 0
-            }));
         } else {
             const leagueSnap = await db.collection("leagues")
                 .where("chatId", "==", chatId)
@@ -421,57 +417,20 @@ bot.onText(/\/leaderboard/, async (msg) => {
             const tournamentId = league.get("tournamentId") || "epl";
             const seasonId = await getActiveSeasonId(tournamentId);
 
-            // Участники приватной лиги
-            const membersSnap = await db.collection("leagueMembers")
-                .where("leagueId", "==", leagueId)
+            standingsSnap = await db.collection("leagueStandings")
+                .doc(leagueId)
+                .collection("users")
+                .orderBy("totalPoints", "desc")
+                .where("seasonId", "==", seasonId)
+                .limit(10)
                 .get();
-            const memberIds = membersSnap.docs.map(d => String(d.get("userId")));
-
-            if (memberIds.length === 0) {
-                return bot.sendMessage(chatId, `Пока нет участников в таблице лидеров (${leagueName}).`);
-            }
-
-            // Забираем standings за сезон только по участникам (батчами по 10)
-            const chunks = [];
-            for (let i = 0; i < memberIds.length; i += 10) chunks.push(memberIds.slice(i, i + 10));
-
-            const collected = [];
-            for (const ids of chunks) {
-                const snap = await db.collection("standings")
-                    .where("leagueId", "==", tournamentId)  // standings у нас общие по турниру
-                    .where("seasonId", "==", seasonId)
-                    .where("userId", "in", ids)
-                    .get();
-                collected.push(...snap.docs.map(d => ({
-                    userId: String(d.get("userId")),
-                    userName: d.get("userName") || String(d.get("userId")),
-                    totalPoints: d.get("totalPoints") || 0
-                })));
-            }
-
-            // Левый джойн: тем, кого не нашли (0 очков)
-            const map = new Map(collected.map(r => [r.userId, r]));
-            rows = memberIds.map(id => map.get(id) || ({
-                userName: String(id),
-                totalPoints: 0
-            }));
-
-            // standingsSnap = await db.collection("leagueStandings")
-            //     .doc(leagueId)
-            //     .collection("users")
-            //     .orderBy("totalPoints", "desc")
-            //     .limit(10)
-            //     .get();
         }
 
-        rows.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        const top = rows.slice(0, 10);
-
-        if (top.length === 0) {
+        if (standingsSnap.empty) {
             return bot.sendMessage(chatId, "Пока нет участников в таблице лидеров.");
         }
 
-        const leaderboard = top.map((doc, index) => {
+        const leaderboard = standingsSnap.docs.map((doc, index) => {
             const data = doc.data();
             const place = index + 1;
 
