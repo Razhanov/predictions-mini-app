@@ -10,13 +10,11 @@ export const getStandingsForPrivateLeague = async (leagueId) => {
     // берём активный сезон этого турнира
     const seasonId = await getActiveSeasonId(tournamentId);
 
-    // читаем standings по этой приватной лиге и текущему сезону
-    const q = query(
-        collection(db, "standings"),
-        where("leagueId", "==", leagueId),
-        where("seasonId", "==", seasonId)
-    );
-    const snap = await getDocs(q);
+    const usersRef = collection(db, `leagueStandings/${leagueId}/users`);
+
+    let snap = await getDocs(query(usersRef, where("seasonId", "==", seasonId)));
+
+    if (snap.empty) snap = await getDocs(usersRef);
 
     const rows = snap.docs.map(d => {
         const data = d.data();
