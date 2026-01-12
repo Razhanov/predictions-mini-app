@@ -18,6 +18,16 @@ const bot = new TelegramBot(token);
 
 const userStates = new Map();
 
+async function getActiveSeasonId(tournamentId = "epl") {
+    const snap = await db.collection("seasons")
+        .where("tournamentId", "==", tournamentId)
+        .where("isActive", "==", true)
+        .limit(1)
+        .get();
+    return snap.empty ? null : snap.docs[0].get("seasonId");
+}
+
+
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const message = "👋 *Привет!*  \nДобро пожаловать в *предиктор матчей*!  \nСоревнуйся с друзьями, предсказывай результаты, набирай очки и поднимайся в таблице лидеров.  \n\n*Нажми на кнопку ниже, чтобы сделать первый прогноз 👇*";
@@ -96,7 +106,14 @@ bot.onText(/\/my_points/, async (msg) => {
     console.log(`Запрос на получение очков от пользователя: ${userName} (userId: ${userId})`);
 
     try {
-        const userDocRef = db.collection("standings").where("leagueId", "==", "epl");
+        const tournamentId = "epl";
+        const seasonId = await getActiveSeasonId(tournamentId);
+        if (!seasonId) throw new Error("Active season not found");
+
+        const userDocRef = db
+            .collection("standings")
+            .where("leagueId", "==", tournamentId)
+            .where("seasonId", "==", seasonId);
         const docSnapshot = await userDocRef.get();
 
         if (docSnapshot.empty) {
@@ -376,8 +393,10 @@ bot.onText(/\/leaderboard/, async (msg) => {
         let leagueName = 'Общая лига';
 
         if (isPrivate) {
+            const seasonId = await getActiveSeasonId();
             standingsSnap = await db.collection("standings")
                 .where("leagueId", "==", "epl")
+                .where("seasonId", "==", seasonId)
                 .orderBy("totalPoints", "desc")
                 .limit(10)
                 .get();
@@ -395,10 +414,14 @@ bot.onText(/\/leaderboard/, async (msg) => {
             const leagueId = league.id;
             leagueName = league.data().name;
 
+            const tournamentId = league.get("tournamentId") || "epl";
+            const seasonId = await getActiveSeasonId(tournamentId);
+
             standingsSnap = await db.collection("leagueStandings")
                 .doc(leagueId)
                 .collection("users")
                 .orderBy("totalPoints", "desc")
+                .where("seasonId", "==", seasonId)
                 .limit(10)
                 .get();
         }

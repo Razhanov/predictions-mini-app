@@ -1,19 +1,18 @@
 import {setDoc, doc, collection, getDocs, query, serverTimestamp, where} from "firebase/firestore";
 import {db} from "../firebase/config.js";
+import {getActiveSeasonId} from "./seasonCache.js";
 
 
 const PREDICTIONS_COLLECTION = "predictions";
+const TOURNAMENT_ID = "epl";
 
-async function getPredictionByUser(userId) {
-    const q = query(collection(db, PREDICTIONS_COLLECTION), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
-
+function mapSnapshotToDict(snapshot) {
     const predictions = {};
-    snapshot.forEach((doc) => {
-        const { matchId, scoreA, scoreB, points, firstScorer, isBoosted } = doc.data();
+    snapshot.forEach((d) => {
+        const { matchId, scoreA, scoreB, points, firstScorer, isBoosted } = d.data();
         predictions[matchId] = {
-            scoreA: scoreA ?? '',
-            scoreB: scoreB ?? '',
+            scoreA: scoreA ?? "",
+            scoreB: scoreB ?? "",
             points: points ?? null,
             firstScorer: firstScorer ?? null,
             isBoosted: isBoosted ?? false,
@@ -21,11 +20,31 @@ async function getPredictionByUser(userId) {
             userId: userId
         };
     });
-
     return predictions;
 }
 
-async function savePrediction(userId, userName, predictionsObject) {
+async function getPredictionByUser(userId) {
+    const seasonId = await getActiveSeasonId(TOURNAMENT_ID);
+    const q = query(
+        collection(db, PREDICTIONS_COLLECTION),
+        where('userId', '==', userId),
+        where('tournamentId', '==', TOURNAMENT_ID),
+        where('seasonId', '==', seasonId)
+    );
+    const snapshot = await getDocs(q);
+
+    // fallback на старую схему (если вдруг нет полей tournamentId/seasonId)
+    if (snapshot.empty) {
+        const legacyQ = query(collection(db, PREDICTIONS_COLLECTION), where("userId", "==", userId));
+        const legacySnap = await getDocs(legacyQ);
+        return mapSnapshotToDict(legacySnap);
+    }
+
+    return mapSnapshotToDict(snapshot);
+}
+
+async function savePrediction(userId, userName, predictionsObject, tournamentId = TOURNAMENT_ID) {
+    const seasonId = await getActiveSeasonId(TOURNAMENT_ID);
     const previousPredictions = await getPredictionByUser(userId);
 
     const batch = Object.entries(predictionsObject)
@@ -54,6 +73,8 @@ async function savePrediction(userId, userName, predictionsObject) {
                 matchId,
                 userId,
                 userName,
+                tournamentId,
+                seasonId,
                 updatedAt: serverTimestamp()
             };
 
