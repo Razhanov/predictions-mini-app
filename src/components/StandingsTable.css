@@ -74,3 +74,9 @@
     min-width: 30px;
     text-align: center;
 }
+
+.live-bonus {
+    color: #28a745; /* зелёный */
+    font-size: 0.875rem;
+    margin-left: 4px;
+}

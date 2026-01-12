@@ -1,9 +1,11 @@
 import React, {useState} from "react";
 import UserPredictionCard from "./UserPredictionCard.jsx";
+import {useNavigate} from "react-router-dom";
 import "./LeaguePredictionSection.css";
 
 function LeaguePredictionSection({ league, match }) {
     const [expanded, setExpanded] = useState(false);
+    const navigate = useNavigate();
 
     const visiblePredictions = expanded
         ? league.predictions
@@ -19,6 +21,7 @@ function LeaguePredictionSection({ league, match }) {
                     teamA={match.teamA}
                     teamB={match.teamB}
                     hasResult={!!match.result}
+                    onClick={() => navigate(`/user/${prediction.userId}`)}
                 />
             ))}
             {league.predictions.length > 5 && (

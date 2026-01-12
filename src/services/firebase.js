@@ -16,6 +16,8 @@ function mapSnapshotToDict(snapshot) {
             points: points ?? null,
             firstScorer: firstScorer ?? null,
             isBoosted: isBoosted ?? false,
+            matchId: matchId,
+            userId: userId
         };
     });
     return predictions;
