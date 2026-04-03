@@ -1,87 +1,146 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./UserProfile.css";
 import {Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {getDoc, doc, getFirestore, query, collection, where, getDocs} from "firebase/firestore";
+import {
+    collection,
+    documentId,
+    getDocs,
+    getFirestore,
+    query,
+    where
+} from "firebase/firestore";
 
 const db = getFirestore();
 
+function toNumberId(userId) {
+    const numericId = Number(userId);
+    return Number.isNaN(numericId) ? userId : numericId;
+}
+
 export default function UserProfile() {
     const { userId } = useParams();
+    const normalizedUserId = toNumberId(userId);
     const [user, setUser] = useState(null);
     const [rounds, setRounds] = useState([]);
     const [predictions, setPredictions] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadUser = async () => {
-            const docId = `epl_2025-26_${userId}`; // Добавить из сервиса
-            const docRef = doc(db, "standings", docId);
-            const snapshot = await getDoc(docRef);
+            const standingsQuery = query(
+                collection(db, "standings"),
+                where("leagueId", "==", "epl"),
+                where("userId", "==", normalizedUserId)
+            );
 
-            if (snapshot.exists()) {
-                setUser(snapshot.data());
-            } else {
-                console.warn("Профиль не найден в standings");
+            const snapshot = await getDocs(standingsQuery);
+            if (!snapshot.empty) {
+                setUser(snapshot.docs[0].data());
+                return;
             }
+
+            console.warn("Профиль не найден в standings");
         };
 
         const loadRoundsPoints = async () => {
             const q = query(
                 collection(db, "roundPoints"),
-                where("userId", "==", Number(userId))
+                where("userId", "==", normalizedUserId),
+                where("leagueId", "==", "epl")
             );
 
             const snap = await getDocs(q);
-            const data = snap.docs.map((doc) => {
-              const d = doc.data();
-              return {
-                  round: d.round,
-                  points: d.totalPoints
-              };
-            });
-
-            data.sort((a, b) => a.round - b.round);
-            console.log("Загруженные очки по турам:", data);
-            setRounds(data);
-        };
-
-        const loadPredictions = async () => {
-            const q = query(
-                collection(db, "predictions"),
-                where("userId", "==", Number(userId))
-            );
-
-            const snap = await getDocs(q);
-            const data = snap.docs.map((doc) => {
-                const d = doc.data();
+            const data = snap.docs.map((entry) => {
+                const roundData = entry.data();
                 return {
-                    round: d.round ?? null,
-                    teamA: d.teamA ?? "–",
-                    teamB: d.teamB ?? "–",
-                    scoreA: d.scoreA,
-                    scoreB: d.scoreB,
-                    points: d.points ?? 0
+                    round: roundData.round,
+                    points: roundData.totalPoints ?? 0
                 };
             });
 
             data.sort((a, b) => a.round - b.round);
-            setPredictions(data);
+            setRounds(data);
         };
 
-        loadUser();
-        loadRoundsPoints();
-        loadPredictions();
-    }, [userId]);
+        const loadPredictions = async () => {
+            const predictionsQuery = query(
+                collection(db, "predictions"),
+                where("userId", "==", normalizedUserId)
+            );
 
-    if (!user) return <div>Loading...</div>;
+            const predictionSnap = await getDocs(predictionsQuery);
+            const rawPredictions = predictionSnap.docs.map((entry) => entry.data());
+            const matchIds = [...new Set(rawPredictions.map((prediction) => prediction.matchId).filter(Boolean))];
+
+            let matchesById = {};
+            if (matchIds.length > 0) {
+                const matchChunks = [];
+                for (let i = 0; i < matchIds.length; i += 10) {
+                    matchChunks.push(matchIds.slice(i, i + 10));
+                }
+
+                const matchDocs = await Promise.all(
+                    matchChunks.map((chunk) => getDocs(
+                        query(collection(db, "matches"), where(documentId(), "in", chunk))
+                    ))
+                );
+
+                matchesById = matchDocs.flatMap((chunk) => chunk.docs)
+                    .reduce((acc, matchDoc) => {
+                        acc[matchDoc.id] = matchDoc.data();
+                        return acc;
+                    }, {});
+            }
+
+            const mappedPredictions = rawPredictions.map((prediction) => {
+                const match = matchesById[prediction.matchId] ?? {};
+                return {
+                    matchId: prediction.matchId,
+                    round: match.round ?? null,
+                    teamA: match.teamA ?? "–",
+                    teamB: match.teamB ?? "–",
+                    scoreA: prediction.scoreA,
+                    scoreB: prediction.scoreB,
+                    points: prediction.points ?? 0
+                };
+            });
+
+            mappedPredictions.sort((a, b) => {
+                if ((a.round ?? 0) !== (b.round ?? 0)) {
+                    return (a.round ?? 0) - (b.round ?? 0);
+                }
+                return String(a.matchId).localeCompare(String(b.matchId));
+            });
+
+            setPredictions(mappedPredictions);
+        };
+
+        const load = async () => {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    loadUser(),
+                    loadRoundsPoints(),
+                    loadPredictions()
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        load();
+    }, [normalizedUserId]);
+
+    if (loading) return <div>Loading...</div>;
+    if (!user) return <div>Профиль не найден</div>;
 
     return (
         <div className="user-profile-container">
             <div className="user-profile-header">
                 <div>
                     <h2>{user.userName ?? userId}</h2>
-                    <p>Очки: {user.totalPoints}</p>
+                    <p>Очки: {user.totalPoints ?? 0}</p>
                 </div>
             </div>
 
@@ -111,9 +170,9 @@ export default function UserProfile() {
                         </tr>
                     </thead>
                     <tbody>
-                    {predictions.map((item, i) => (
-                        <tr key={i}>
-                            <td>{item.round}</td>
+                    {predictions.map((item) => (
+                        <tr key={item.matchId}>
+                            <td>{item.round ?? "—"}</td>
                             <td>{item.teamA} – {item.teamB}</td>
                             <td>{item.scoreA}:{item.scoreB}</td>
                             <td>{item.points}</td>
@@ -123,5 +182,5 @@ export default function UserProfile() {
                 </table>
             </div>
         </div>
-    )
+    );
 }

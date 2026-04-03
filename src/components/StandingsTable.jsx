@@ -3,12 +3,16 @@ import "./StandingsTable.css"
 import { motion, AnimatePresence } from "framer-motion";
 import {calculatePoints} from "../../functions/scoreService.js";
 import {useMatches} from "../hooks/useMatches.js";
-import {usePredictions} from "../hooks/usePredictions.js";
-import {getAllPredictions} from "../services/getPredictionsForMatch.js";
+
+function getMatchStartMs(match) {
+    if (match.date instanceof Date) return match.date.getTime();
+    if (match.date?.seconds) return match.date.seconds * 1000;
+    return 0;
+}
 
 const getModifiedStandings = (standings, matches, predictions) => {
     const now = Date.now();
-    const liveMatches = matches.filter(match => match.date <= now && !match.isFinished);
+    const liveMatches = matches.filter((match) => getMatchStartMs(match) <= now && !match.isFinished);
     const extraPoints = {};
 
     liveMatches.forEach(match => {
@@ -32,7 +36,7 @@ const getModifiedStandings = (standings, matches, predictions) => {
 const StandingsTable = ({ league, standings, roundPoints, onBack, predictions }) => {
     const [selectedRound, setSelectedRound] = useState(0);
     const [liveEnabled, setLiveEnabled] = useState(false);
-    const { matches, loading } = useMatches();
+    const { matches } = useMatches();
 
     const modifiedStandings = useMemo(() => {
         if (selectedRound !== 0) {

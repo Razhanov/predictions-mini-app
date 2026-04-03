@@ -30,9 +30,10 @@ export function usePredictions() {
         const hasChanges = Object.keys(updated).some((matchId) => {
             const currentPrediction = updated[matchId];
             const initialPrediction = initialPredictions[matchId] ?? {};
-            return currentPrediction?.scoreA !== initialPrediction.scoreB ||
+            return currentPrediction?.scoreA !== initialPrediction.scoreA ||
                 currentPrediction?.scoreB !== initialPrediction.scoreB ||
-                currentPrediction?.firstScorer !== initialPrediction.firstScorer;
+                currentPrediction?.firstScorer !== initialPrediction.firstScorer ||
+                currentPrediction?.isBoosted !== initialPrediction.isBoosted;
         });
 
         const hasValid = Object.values(updated).some(isValidPrediction);
@@ -56,6 +57,7 @@ export function usePredictions() {
 
         try {
             await firebaseService.savePrediction(userId, userName, currentPredictions);
+            setInitialPredictions(currentPredictions);
             telegramService.showAlert('Прогнозы сохранены ✅');
             telegramService.hideMainButton();
         } catch (err) {
