@@ -1,8 +1,10 @@
 const tg = window.Telegram?.WebApp;
+const isDevelopment = import.meta.env.DEV;
 
 function getUserId() {
     const telegramUserId = tg?.initDataUnsafe?.user?.id;
     if (telegramUserId) return telegramUserId;
+    if (!isDevelopment) return null;
 
     const fallbackUserId = import.meta.env.VITE_TELEGRAM_USER_ID;
     return fallbackUserId ? Number(fallbackUserId) : null;
@@ -10,9 +12,10 @@ function getUserId() {
 
 function getUserName() {
     const user = tg?.initDataUnsafe?.user;
-    if (!user) {
+    if (!user && isDevelopment) {
         return import.meta.env.VITE_TELEGRAM_USER_NAME || "Unknown";
     }
+    if (!user) return "Unknown";
 
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 
 const db = getFirestore();
+const CURRENT_SEASON_ID = "2025-26";
 
 function toNumberId(userId) {
     const numericId = Number(userId);
@@ -31,6 +32,7 @@ export default function UserProfile() {
             const standingsQuery = query(
                 collection(db, "standings"),
                 where("leagueId", "==", "epl"),
+                where("seasonId", "==", CURRENT_SEASON_ID),
                 where("userId", "==", normalizedUserId)
             );
 
@@ -47,6 +49,7 @@ export default function UserProfile() {
             const q = query(
                 collection(db, "roundPoints"),
                 where("userId", "==", normalizedUserId),
+                where("seasonId", "==", CURRENT_SEASON_ID),
                 where("leagueId", "==", "epl")
             );
 
