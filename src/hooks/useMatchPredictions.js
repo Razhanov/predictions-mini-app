@@ -3,6 +3,14 @@ import {getMatchById, getPredictionsForMatch} from "../services/getPredictionsFo
 import {getUserLeagues} from "./getUserLeagues.js";
 import {calculatePoints} from "../../functions/scoreService.js";
 
+function getLiveResult(matchData) {
+    return {
+        scoreA: matchData?.liveScoreA ?? 0,
+        scoreB: matchData?.liveScoreB ?? 0,
+        firstScorer: matchData?.firstScorer ?? null
+    };
+}
+
 export function useMatchPredictions(matchId, userId) {
     const [match, setMatch] = useState(null);
     const [myPrediction, setMyPrediction] = useState(null);
@@ -18,13 +26,8 @@ export function useMatchPredictions(matchId, userId) {
 
             setMatch(matchData);
             const userPrediction = allPredictions.find(pred => String(pred.userId) === String(userId));
-            if (userPrediction.points === undefined) {
-                userPrediction.points = calculatePoints(userPrediction, {
-                    scoreA: matchData.liveScoreA ?? 0,
-                    scoreB: matchData.liveScoreB ?? 0,
-                    firstScorer: matchData.firstScorer ?? null,
-                    isBoosted: matchData.isBoosted
-                })
+            if (userPrediction && userPrediction.points === undefined) {
+                userPrediction.points = calculatePoints(userPrediction, getLiveResult(matchData));
             }
             setMyPrediction(userPrediction);
 
@@ -35,12 +38,7 @@ export function useMatchPredictions(matchId, userId) {
                         ...prediction,
                         points: matchData?.result
                             ? prediction.points
-                            : calculatePoints(prediction, {
-                                scoreA: matchData.liveScoreA ?? 0,
-                                scoreB: matchData.liveScoreB ?? 0,
-                                firstScorer: matchData.firstScorer ?? null,
-                                isBoosted: matchData.isBoosted
-                            })
+                            : calculatePoints(prediction, getLiveResult(matchData))
                     }))
                     .sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
 
