@@ -14,6 +14,7 @@ import { CloudTasksClient } from '@google-cloud/tasks';
 import {region} from "firebase-functions/v1";
 const db = getFirestore();
 const tasksClient = new CloudTasksClient();
+const CURRENT_PUBLIC_LEAGUE_ID = "epl_2025-26";
 
 export const onMatchResultUpdate = onDocumentUpdated(
     {
@@ -212,7 +213,7 @@ export const onJoinLeague = onDocumentCreated({
         return;
     }
     const league = leagueDoc.data();
-    const tournamentId = league.tournamentId || "epl";
+    const tournamentId = league.tournamentId || CURRENT_PUBLIC_LEAGUE_ID;
 
     const standingRef = db.collection("standings").doc(`${tournamentId}_${userId}`);
     const standingSnap = await standingRef.get();
@@ -248,7 +249,9 @@ export const onStandingsUpdated = onDocumentUpdated({
         console.error("❌ docId не передан в params");
         return;
     }
-    const [tournamentId, userId] = docId.split("_");
+    const separatorIndex = docId.lastIndexOf("_");
+    const tournamentId = separatorIndex === -1 ? "" : docId.slice(0, separatorIndex);
+    const userId = separatorIndex === -1 ? "" : docId.slice(separatorIndex + 1);
     if (!tournamentId || !userId) {
         console.error(`❌ Не удалось распарсить tournamentId и userId из docId: ${docId}`);
         return;

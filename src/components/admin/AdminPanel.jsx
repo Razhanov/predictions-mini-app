@@ -6,6 +6,7 @@ import {useIsAdmin} from "../../hooks/useIsAdmin.js";
 import {format} from "date-fns";
 import "./AdminPanel.css";
 import {telegramService} from "../../services/telegram.js";
+import {CURRENT_PUBLIC_LEAGUE_ID} from "../../constants/leagues.js";
 
 function AdminPanel() {
     const [matches, setMatches] = useState([]);
@@ -15,7 +16,7 @@ function AdminPanel() {
     const [teamA, setTeamA] = useState("");
     const [teamB, setTeamB] = useState("");
     const [round, setRound] = useState("");
-    const leagueId = "epl";
+    const leagueId = CURRENT_PUBLIC_LEAGUE_ID;
     const [date, setDate] = useState("");
     const [loading, setLoading] = useState(false);
 

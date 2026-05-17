@@ -17,6 +17,7 @@ const token = '7206155323:AAGccBSkHFc5GHLdFW0X9Y4zwJIBprzN8Ts';
 const bot = new TelegramBot(token);
 
 const userStates = new Map();
+const CURRENT_PUBLIC_LEAGUE_ID = "epl_2025-26";
 
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
@@ -96,7 +97,7 @@ bot.onText(/\/my_points/, async (msg) => {
     console.log(`Запрос на получение очков от пользователя: ${userName} (userId: ${userId})`);
 
     try {
-        const userDocRef = db.collection("standings").where("leagueId", "==", "epl");
+        const userDocRef = db.collection("standings").where("leagueId", "==", CURRENT_PUBLIC_LEAGUE_ID);
         const docSnapshot = await userDocRef.get();
 
         if (docSnapshot.empty) {
@@ -377,7 +378,7 @@ bot.onText(/\/leaderboard/, async (msg) => {
 
         if (isPrivate) {
             standingsSnap = await db.collection("standings")
-                .where("leagueId", "==", "epl")
+                .where("leagueId", "==", CURRENT_PUBLIC_LEAGUE_ID)
                 .orderBy("totalPoints", "desc")
                 .limit(10)
                 .get();

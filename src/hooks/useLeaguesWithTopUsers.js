@@ -3,10 +3,7 @@ import {getStandingsForLeague} from "./getStandingsForLeague.js";
 import {collection, getDoc, getDocs, query, where, doc} from "firebase/firestore";
 import {db} from "../firebase/config.js";
 import {getStandingsForPrivateLeague} from "./getStandingsForPrivateLeague.js";
-
-const PUBLIC_LEAGUES = [
-    { id: "epl", name: "АПЛ", type: "public" }
-];
+import {PUBLIC_LEAGUES} from "../constants/leagues.js";
 
 export const useLeaguesWithTopUsers = (userId) => {
     const [leagues, setLeagues] = useState([]);
@@ -16,6 +13,9 @@ export const useLeaguesWithTopUsers = (userId) => {
     useEffect(() => {
         const fetchLeagues = async () => {
             try {
+                setLoading(true);
+                setError(null);
+
                 const publicLeagues = await Promise.all(
                     PUBLIC_LEAGUES.map(async league => {
                         const standings = await getStandingsForLeague(league.id);
@@ -25,6 +25,11 @@ export const useLeaguesWithTopUsers = (userId) => {
                         };
                     })
                 );
+
+                if (!userId) {
+                    setLeagues(publicLeagues);
+                    return;
+                }
 
                 const leagueMemberQuery = query(
                     collection(db, "leagueMembers"),
@@ -55,7 +60,7 @@ export const useLeaguesWithTopUsers = (userId) => {
 
                 setLeagues([
                     ...publicLeagues,
-                    ...privateLeagues
+                    ...privateLeagues.filter(Boolean)
                 ]);
             } catch (error) {
                 console.error("Ошибка при загрузке лиг:", error);

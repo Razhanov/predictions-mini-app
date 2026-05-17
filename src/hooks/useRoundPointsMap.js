@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {collection, getDocs, query, where} from "firebase/firestore";
 import {db} from "../firebase/config.js"
 import {telegramService} from "../services/telegram.js";
+import {CURRENT_PUBLIC_LEAGUE_ID} from "../constants/leagues.js";
 
 export function useRoundPointsMap() {
     const tgUserId = telegramService.getUserId();
@@ -14,7 +15,7 @@ export function useRoundPointsMap() {
             const q = query(
                 collection(db, "roundPoints"),
                 where("userId", "==", tgUserId),
-                where("leagueId", "==", "epl")
+                where("leagueId", "==", CURRENT_PUBLIC_LEAGUE_ID)
             )
             const snap = await getDocs(q);
             const map = {};

@@ -1,5 +1,6 @@
 import {collection, doc, getDoc, getDocs, query, where} from "firebase/firestore";
 import {db} from "../firebase/config.js";
+import {CURRENT_PUBLIC_LEAGUE_ID} from "../constants/leagues.js";
 
 export async function getRoundPointsForLeague(leagueId) {
     const q = query(collection(db, "roundPoints"), where("leagueId", "==", leagueId));
@@ -26,7 +27,7 @@ export async function getRoundPointsForPrivateLeague(leagueId) {
     const allPointsSnap = await getDocs(
         query(
             collection(db, "roundPoints"),
-            where("leagueId", "==", tournamentId ?? "epl")
+            where("leagueId", "==", tournamentId ?? CURRENT_PUBLIC_LEAGUE_ID)
         )
     );
 

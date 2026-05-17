@@ -2,7 +2,7 @@ import React, {useMemo} from "react";
 import "./StandingsTable.css"
 import { motion, AnimatePresence } from "framer-motion";
 
-const StandingsTable = ({ league, standings, roundPoints, onBack }) => {
+const StandingsTable = ({ league, standings, roundPoints, onBack, loading = false, error = "" }) => {
     const [selectedRound, setSelectedRound] = React.useState(0);
 
     const sorted = useMemo(() => {
@@ -28,37 +28,48 @@ const StandingsTable = ({ league, standings, roundPoints, onBack }) => {
             <button className="back-button" onClick={onBack}>← Назад</button>
             <h2 className="standings-title">Таблица — {league.name}</h2>
 
-            <div className="round-select">
-                <select
-                    value={selectedRound}
-                    onChange={(e) => setSelectedRound(Number(e.target.value))}
-                >
-                    <option value="0">Общая таблица</option>
-                    {uniqueRounds.map((round) => (
-                        <option key={round} value={round}>
-                            Тур {round}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div className="standings-table">
-                <AnimatePresence>
-                    {sorted.map((user, index) => (
-                        <motion.div
-                            key={user.userId}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.25 }}
-                            className="standings-row"
+            {loading ? (
+                <div className="standings-loading" role="status" aria-live="polite">
+                    <div className="standings-spinner" aria-hidden="true" />
+                    <p>Загружаем таблицу и очки по турам...</p>
+                </div>
+            ) : error ? (
+                <div className="standings-status">{error}</div>
+            ) : (
+                <>
+                    <div className="round-select">
+                        <select
+                            value={selectedRound}
+                            onChange={(e) => setSelectedRound(Number(e.target.value))}
                         >
-                            <span className="place">#{index + 1}</span>
-                            <span className="name">{user.userName || user.userId}</span>
-                            <span className="points">{user.totalPoints} pts</span>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </div>
+                            <option value="0">Общая таблица</option>
+                            {uniqueRounds.map((round) => (
+                                <option key={round} value={round}>
+                                    Тур {round}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="standings-table">
+                        <AnimatePresence>
+                            {sorted.map((user, index) => (
+                                <motion.div
+                                    key={`${selectedRound}-${user.userId ?? "unknown"}-${index}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="standings-row"
+                                >
+                                    <span className="place">#{index + 1}</span>
+                                    <span className="name">{user.userName || user.userId}</span>
+                                    <span className="points">{user.totalPoints} pts</span>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
