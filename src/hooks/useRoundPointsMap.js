@@ -25,15 +25,13 @@ export function useRoundPointsMap(tournamentId = "epl") {
 
             snap.forEach((doc) => {
                 const data = doc.data();
-                console.log("totalPoints", data.totalPoints);
                 map[data.round] = data.totalPoints ?? 0;
             })
-            console.log("map", map);
             setPointsMap(map);
         }
 
         fetchPoints();
-    }, [tgUserId]);
+    }, [tgUserId, tournamentId]);
 
     return pointsMap;
 }

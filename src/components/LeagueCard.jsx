@@ -1,12 +1,17 @@
 import React from "react";
 import "./LeagueCard.css";
 
-const LeagueCard = ({ league, onClick }) => {
+const LeagueCard = ({ league, onClick, isLoading = false }) => {
     return (
-        <div className="league-card" onClick={onClick}>
+        <button
+            className={`league-card${isLoading ? " league-card-loading" : ""}`}
+            onClick={onClick}
+            disabled={isLoading}
+            type="button"
+        >
             <div className="league-header">
                 <div className="league-title">{league.name}</div>
-                <div className="view-all">Перейти →</div>
+                <div className="view-all">{isLoading ? "Загрузка..." : "Перейти →"}</div>
             </div>
             <div className="league-users">
                 {league.topUsers.map((user, index) => (
@@ -17,7 +22,7 @@ const LeagueCard = ({ league, onClick }) => {
                     </div>
                 ))}
             </div>
-        </div>
+        </button>
     );
 };
 

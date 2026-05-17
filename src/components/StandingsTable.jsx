@@ -23,7 +23,6 @@ const getModifiedStandings = (standings, matches, predictions) => {
             if (!extraPoints[prediction.userId]) extraPoints[prediction.userId] = 0;
             extraPoints[prediction.userId] += points;
         });
-        console.log("extraPoints", extraPoints);
     });
 
     return standings.map(row => ({
@@ -33,7 +32,7 @@ const getModifiedStandings = (standings, matches, predictions) => {
     }));
 };
 
-const StandingsTable = ({ league, standings, roundPoints, onBack, predictions }) => {
+const StandingsTable = ({ league, standings, roundPoints, onBack, predictions, loading = false, error = "" }) => {
     const [selectedRound, setSelectedRound] = useState(0);
     const [liveEnabled, setLiveEnabled] = useState(false);
     const { matches } = useMatches();
@@ -74,53 +73,64 @@ const StandingsTable = ({ league, standings, roundPoints, onBack, predictions })
             <button className="back-button" onClick={onBack}>← Назад</button>
             <h2 className="standings-title">Таблица — {league.name}</h2>
 
-            <div className="round-select">
-                <select
-                    value={selectedRound}
-                    onChange={(e) => setSelectedRound(Number(e.target.value))}
-                >
-                    <option value="0">Общая таблица</option>
-                    {uniqueRounds.map((round) => (
-                        <option key={round} value={round}>
-                            Тур {round}
-                        </option>
-                    ))}
-                </select>
-
-                {selectedRound === 0 && (
-                    <label className="live-toggle">
-                        <input
-                            type="checkbox"
-                            checked={liveEnabled}
-                            onChange={() => setLiveEnabled(!liveEnabled)}
-                        />
-                        <span>Live-режим</span>
-                    </label>
-                )}
-            </div>
-            <div className="standings-table">
-                <AnimatePresence>
-                    {modifiedStandings.map((user, index) => (
-                        <motion.div
-                            key={user.userId}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.25 }}
-                            className="standings-row"
+            {loading ? (
+                <div className="standings-loading" role="status" aria-live="polite">
+                    <div className="standings-spinner" aria-hidden="true" />
+                    <p>Загружаем таблицу и очки по турам...</p>
+                </div>
+            ) : error ? (
+                <div className="standings-status">{error}</div>
+            ) : (
+                <>
+                    <div className="round-select">
+                        <select
+                            value={selectedRound}
+                            onChange={(e) => setSelectedRound(Number(e.target.value))}
                         >
-                            <span className="place">#{index + 1}</span>
-                            <span className="name">{user.userName || user.userId}</span>
-                            <span className="points">
-                                {user.totalPoints} pts
-                                {liveEnabled && user.liveAddedPoints > 0 && (
-                                    <span className="live-bonus">(+{user.liveAddedPoints})</span>
-                                )}
-                            </span>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </div>
+                            <option value="0">Общая таблица</option>
+                            {uniqueRounds.map((round) => (
+                                <option key={round} value={round}>
+                                    Тур {round}
+                                </option>
+                            ))}
+                        </select>
+
+                        {selectedRound === 0 && (
+                            <label className="live-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={liveEnabled}
+                                    onChange={() => setLiveEnabled(!liveEnabled)}
+                                />
+                                <span>Live-режим</span>
+                            </label>
+                        )}
+                    </div>
+                    <div className="standings-table">
+                        <AnimatePresence>
+                            {modifiedStandings.map((user, index) => (
+                                <motion.div
+                                    key={`${selectedRound}-${user.userId ?? "unknown"}-${index}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="standings-row"
+                                >
+                                    <span className="place">#{index + 1}</span>
+                                    <span className="name">{user.userName || user.userId}</span>
+                                    <span className="points">
+                                        {user.totalPoints} pts
+                                        {liveEnabled && user.liveAddedPoints > 0 && (
+                                            <span className="live-bonus">(+{user.liveAddedPoints})</span>
+                                        )}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
