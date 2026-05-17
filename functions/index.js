@@ -14,7 +14,7 @@ import { CloudTasksClient } from '@google-cloud/tasks';
 import {region} from "firebase-functions/v1";
 const db = getFirestore();
 const tasksClient = new CloudTasksClient();
-const CURRENT_PUBLIC_LEAGUE_ID = "epl_2025-26";
+const CURRENT_PUBLIC_LEAGUE_ID = "epl";
 
 export const onMatchResultUpdate = onDocumentUpdated(
     {
@@ -29,7 +29,10 @@ export const onMatchResultUpdate = onDocumentUpdated(
         if (!before?.result && after?.result) {
             const matchId = event.params.matchId;
             const result = after.result;
-            const { round, leagueId } = after;
+            // const { round, leagueId } = after;
+            const round = after.round;
+            const tournamentId = after.tournamentId || after.leagueId || "epl";
+            const seasonId = after.seasonId || (await getActiveSeasonId(tournamentId));
 
             const predictionsSnap = await db.collection("predictions")
                 .where("matchId", "==", matchId)
@@ -53,9 +56,10 @@ export const onMatchResultUpdate = onDocumentUpdated(
                 // Обновляем очки в predictions
                 batch.update(doc.ref, { points });
 
+                const roundPointsId = `${tournamentId}_${seasonId}_${round}_${userId}`;
                 const roundPointsRef = db
                     .collection("roundPoints")
-                    .doc(`${leagueId}_${round}_${userId}`);
+                    .doc(roundPointsId);
 
                 const matchPointsRef = roundPointsRef.collection("matches").doc(matchId);
 
@@ -63,13 +67,16 @@ export const onMatchResultUpdate = onDocumentUpdated(
                     userId,
                     userName,
                     round,
-                    leagueId,
+                    // для совместимости старого кода оставляем leagueId, но пишем и новые поля:
+                    leagueId: tournamentId,
+                    tournamentId,
+                    seasonId,
                     updatedAt: Date.now()
                 }, { merge: true });
 
                 batch.set(matchPointsRef, {
                     points
-                });
+                }, { merge: true });
             });
 
             await batch.commit();
@@ -132,10 +139,11 @@ export const onMatchCreated = onDocumentCreated({
     );
 });
 
-async function recalculateTotalPoints(userId, userName, leagueId) {
+async function recalculateTotalPoints(userId, userName, leagueId, seasonId, tournamentId = leagueId) {
     const snapshot = await db.collection("roundPoints")
         .where("userId", "==", userId)
         .where("leagueId", "==", leagueId)
+        .where("seasonId", "==", seasonId)
         .get();
 
     let total = 0;
@@ -154,13 +162,16 @@ async function recalculateTotalPoints(userId, userName, leagueId) {
     }
 
     await db.collection("standings")
-        .doc(`${leagueId}_${userId}`)
+        .doc(`${leagueId}_${seasonId}_${userId}`)
         .set({
             userId,
             userName,
             leagueId,
-            totalPoints: total
-        });
+            tournamentId,
+            seasonId,
+            totalPoints: total,
+            updatedAt: Date.now()
+        }, { merge: true });
 
     console.log(`Обновлена таблица standings для ${userId} в ${leagueId}: ${total} очков`);
 }
@@ -171,9 +182,9 @@ export const onRoundPointsCreated = onDocumentCreated({
     serviceAccount: "predictions-tg@appspot.gserviceaccount.com"
 }, async (event) => {
     const data = event.data?.data();
-    if (!data.userId || !data.leagueId) return;
+    if (!data.userId || !data.leagueId || !data.seasonId) return;
     console.log("userId:", data.userId, "leagueId:", data.leagueId);
-    await recalculateTotalPoints(data.userId, data.userName, data.leagueId);
+    await recalculateTotalPoints(data.userId, data.userName, data.leagueId, data.seasonId, data.tournamentId);
 });
 
 export const onRoundPointsUpdated = onDocumentUpdated({
@@ -182,9 +193,9 @@ export const onRoundPointsUpdated = onDocumentUpdated({
     serviceAccount: "predictions-tg@appspot.gserviceaccount.com"
 }, async (event) => {
     const data = event.data?.after?.data();
-    if (!data.userId || !data.leagueId) return;
+    if (!data.userId || !data.leagueId || !data.seasonId) return;
     console.log("userId:", data.userId, "leagueId:", data.leagueId);
-    await recalculateTotalPoints(data.userId, data.userName, data.leagueId);
+    await recalculateTotalPoints(data.userId, data.userName, data.leagueId, data.seasonId, data.tournamentId);
 });
 
 export const onRoundPointsDeleted = onDocumentDeleted({
@@ -193,9 +204,9 @@ export const onRoundPointsDeleted = onDocumentDeleted({
     serviceAccount: "predictions-tg@appspot.gserviceaccount.com"
 }, async (event) => {
     const data = event.data?.data();
-    if (!data.userId || !data.leagueId) return;
+    if (!data.userId || !data.leagueId || !data.seasonId) return;
     console.log("userId:", data.userId, "leagueId:", data.leagueId);
-    await recalculateTotalPoints(data.userId, data.userName, data.leagueId);
+    await recalculateTotalPoints(data.userId, data.userName, data.leagueId, data.seasonId, data.tournamentId);
 });
 
 export const onJoinLeague = onDocumentCreated({
@@ -214,8 +225,9 @@ export const onJoinLeague = onDocumentCreated({
     }
     const league = leagueDoc.data();
     const tournamentId = league.tournamentId || CURRENT_PUBLIC_LEAGUE_ID;
+    const seasonId = await getActiveSeasonId(tournamentId);
 
-    const standingRef = db.collection("standings").doc(`${tournamentId}_${userId}`);
+    const standingRef = db.collection("standings").doc(`${tournamentId}_${seasonId}_${userId}`);
     const standingSnap = await standingRef.get();
 
     const standingData = standingSnap.exists
@@ -230,8 +242,9 @@ export const onJoinLeague = onDocumentCreated({
             userId,
             userName: standingData.userName,
             totalPoints: standingData.totalPoints || 0,
+            seasonId,
             updatedAt: Date.now()
-        });
+        }, { merge: true });
 
     console.log(`✅ Пользователь ${userId} добавлен в standings лиги ${leagueId}`);
 });
@@ -245,17 +258,15 @@ export const onStandingsUpdated = onDocumentUpdated({
     if (!after) return;
 
     const docId = event.params.docId;
-    if (!docId) {
-        console.error("❌ docId не передан в params");
+    const parts = docId.split("_");
+
+    if (parts.length < 3) {
+        console.error(`❌ Неожиданный docId для standings: ${docId}`);
         return;
     }
-    const separatorIndex = docId.lastIndexOf("_");
-    const tournamentId = separatorIndex === -1 ? "" : docId.slice(0, separatorIndex);
-    const userId = separatorIndex === -1 ? "" : docId.slice(separatorIndex + 1);
-    if (!tournamentId || !userId) {
-        console.error(`❌ Не удалось распарсить tournamentId и userId из docId: ${docId}`);
-        return;
-    }
+    const userId    = parts.pop();
+    const seasonId  = parts.pop();
+    const leagueId  = parts.join("_"); // на случай подчёркиваний в leagueId
 
     const userName = after.userName ?? userId;
     const totalPoints = after.totalPoints ?? 0;
@@ -289,6 +300,7 @@ export const onStandingsUpdated = onDocumentUpdated({
                 userId,
                 userName,
                 totalPoints,
+                seasonId,
                 updatedAt: Date.now()
         },{ merge: true });
     });
@@ -296,6 +308,15 @@ export const onStandingsUpdated = onDocumentUpdated({
     await batch.commit();
     console.log(`🔄 Обновлены standings пользователя ${userId} в лигах (${leaguesSnap.size} шт.)`);
 });
+
+async function getActiveSeasonId(tournamentId = "epl") {
+    const snap = await db.collection("seasons")
+        .where("tournamentId", "==", tournamentId)
+        .where("isActive", "==", true)
+        .limit(1)
+        .get();
+    return snap.empty ? null : snap.docs[0].get("seasonId");
+}
 
 export { telegramBot } from "./telegramBot.js";
 export { sendReminder } from "./reminders/sendReminder.js";

@@ -1,6 +1,5 @@
 import MatchPredictionsPage from "./components/matchPredictions/MatchPredictionsPage.jsx";
 
-console.log('main.jsx работает');
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
@@ -8,6 +7,7 @@ import './App.css';
 import {Navigate, Routes, Route, Link, useLocation, BrowserRouter as Router} from "react-router-dom";
 import LeagueTab from "./LeagueTab.jsx";
 import AdminPanel from "./components/admin/AdminPanel.jsx";
+import UserProfile from "./components/UserProfile/UserProfile.jsx";
 
 function TabBar() {
     const location = useLocation();
@@ -39,6 +39,7 @@ function Root() {
                     <Route path="/leagues" element={<LeagueTab />} />
                     <Route path="/match/:matchId/predictions" element={<MatchPredictionsPage />} />
                     <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="/user/:userId" element={<UserProfile />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
                 <TabBar />

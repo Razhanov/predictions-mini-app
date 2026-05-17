@@ -6,6 +6,7 @@ import {getRoundPointsForLeague, getRoundPointsForPrivateLeague} from "./hooks/g
 import {useLeaguesWithTopUsers} from "./hooks/useLeaguesWithTopUsers.js";
 import {getStandingsForPrivateLeague} from "./hooks/getStandingsForPrivateLeague.js";
 import {telegramService} from "./services/telegram.js";
+import {getAllPredictions} from "./services/getPredictionsForMatch.js";
 
 function LeagueTab() {
     const [userId, setUserId] = useState(() => telegramService.getUserId());
@@ -15,6 +16,7 @@ function LeagueTab() {
     const [roundPoints, setRoundPoints] = useState([]);
     const [isLeagueLoading, setIsLeagueLoading] = useState(false);
     const [leagueLoadError, setLeagueLoadError] = useState("");
+    const [predictions, setPredictions] = useState([]);
 
     useEffect(() => {
         if (userId) return;
@@ -41,19 +43,22 @@ function LeagueTab() {
         setSelectedLeague(league);
         setStandings([]);
         setRoundPoints([]);
+        setPredictions([]);
         setLeagueLoadError("");
         setIsLeagueLoading(true);
 
         const isPrivate = league.type === "private";
 
         try {
-            const [standingsData, roundPointsData] = await Promise.all([
+            const [standingsData, roundPointsData, predictionsData] = await Promise.all([
                 isPrivate ? getStandingsForPrivateLeague(league.id) : getStandingsForLeague(league.id),
-                isPrivate ? getRoundPointsForPrivateLeague(league.id) : getRoundPointsForLeague(league.id)
+                isPrivate ? getRoundPointsForPrivateLeague(league.id) : getRoundPointsForLeague(league.id),
+                getAllPredictions()
             ]);
 
             setStandings(standingsData);
             setRoundPoints(roundPointsData);
+            setPredictions(predictionsData);
         } catch (error) {
             console.error("Failed to load league standings", error);
             setLeagueLoadError("Не удалось загрузить таблицу лиги. Попробуйте еще раз.");
@@ -66,6 +71,7 @@ function LeagueTab() {
         setSelectedLeague(null);
         setStandings([]);
         setRoundPoints([]);
+        setPredictions([]);
         setLeagueLoadError("");
         setIsLeagueLoading(false);
     };
@@ -79,6 +85,7 @@ function LeagueTab() {
                 onBack={handleBack}
                 loading={isLeagueLoading}
                 error={leagueLoadError}
+                predictions={predictions}
             />
         );
     }

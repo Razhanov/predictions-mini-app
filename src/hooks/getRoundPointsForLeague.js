@@ -1,9 +1,15 @@
 import {collection, doc, getDoc, getDocs, query, where} from "firebase/firestore";
 import {db} from "../firebase/config.js";
-import {CURRENT_PUBLIC_LEAGUE_ID} from "../constants/leagues.js";
+import {getActiveSeasonId} from "../services/seasonCache.js";
 
 export async function getRoundPointsForLeague(leagueId) {
-    const q = query(collection(db, "roundPoints"), where("leagueId", "==", leagueId));
+    const seasonId = await getActiveSeasonId(leagueId || "epl");
+
+    const q = query(
+        collection(db, "roundPoints"),
+        where("leagueId", "==", leagueId),
+        where("seasonId", "==", seasonId)
+    );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -12,7 +18,8 @@ export async function getRoundPointsForPrivateLeague(leagueId) {
     const leagueDoc = await getDoc(doc(db, "leagues", leagueId));
     if (!leagueDoc.exists()) return [];
 
-    const { tournamentId } = leagueDoc.data();
+    const { tournamentId = "epl" } = leagueDoc.data();
+    const seasonId = await getActiveSeasonId(tournamentId);
 
     const membersSnap = await getDocs(
         query(
@@ -27,7 +34,8 @@ export async function getRoundPointsForPrivateLeague(leagueId) {
     const allPointsSnap = await getDocs(
         query(
             collection(db, "roundPoints"),
-            where("leagueId", "==", tournamentId ?? CURRENT_PUBLIC_LEAGUE_ID)
+            where("leagueId", "==", tournamentId),
+            where("seasonId", "==", seasonId)
         )
     );
 

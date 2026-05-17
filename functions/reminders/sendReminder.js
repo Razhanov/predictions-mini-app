@@ -6,7 +6,7 @@ import {getApps, initializeApp} from "firebase-admin/app";
 import express from "express";
 import {onRequest} from "firebase-functions/v2/https";
 
-if (!getApps()) {
+if (!getApps().length) {
     initializeApp();
 }
 
@@ -60,7 +60,7 @@ app.post("/", async (req, res) => {
                                 [
                                     {
                                         text: "Сделать прогноз ⚽",
-                                        web_app: { url: 'https://predictions-bot.netlify.app/predict?startapp=match_${matchId}' }
+                                        web_app: { url: `https://predictions-bot.netlify.app/predict?startapp=match_${matchId}` }
                                     }
                                 ]
                             ]
