@@ -14,3 +14,11 @@ export async function getMatchById(matchId) {
     const snapshot = await getDoc(ref);
     return snapshot.exists() ? snapshot.data() : null;
 }
+
+export async function getAllPredictions() {
+    const ref = collection(db, 'predictions');
+    const q = query(ref);
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => doc.data());
+}

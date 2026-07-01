@@ -17,6 +17,7 @@ const token = '7206155323:AAGccBSkHFc5GHLdFW0X9Y4zwJIBprzN8Ts';
 const bot = new TelegramBot(token);
 
 const userStates = new Map();
+const CURRENT_PUBLIC_LEAGUE_ID = "epl";
 
 async function getActiveSeasonId(tournamentId = "epl") {
     const snap = await db.collection("seasons")
@@ -106,7 +107,7 @@ bot.onText(/\/my_points/, async (msg) => {
     console.log(`Запрос на получение очков от пользователя: ${userName} (userId: ${userId})`);
 
     try {
-        const tournamentId = "epl";
+        const tournamentId = CURRENT_PUBLIC_LEAGUE_ID;
         const seasonId = await getActiveSeasonId(tournamentId);
         if (!seasonId) throw new Error("Active season not found");
 
@@ -393,9 +394,9 @@ bot.onText(/\/leaderboard/, async (msg) => {
         let leagueName = 'Общая лига';
 
         if (isPrivate) {
-            const seasonId = await getActiveSeasonId();
+            const seasonId = await getActiveSeasonId(CURRENT_PUBLIC_LEAGUE_ID);
             standingsSnap = await db.collection("standings")
-                .where("leagueId", "==", "epl")
+                .where("leagueId", "==", CURRENT_PUBLIC_LEAGUE_ID)
                 .where("seasonId", "==", seasonId)
                 .orderBy("totalPoints", "desc")
                 .limit(10)

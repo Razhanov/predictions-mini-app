@@ -4,7 +4,7 @@ import {getActiveSeasonId} from "../services/seasonCache.js";
 
 export async function getRoundPointsForLeague(leagueId) {
     const seasonId = await getActiveSeasonId(leagueId || "epl");
-    
+
     const q = query(
         collection(db, "roundPoints"),
         where("leagueId", "==", leagueId),

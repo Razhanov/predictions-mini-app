@@ -25,6 +25,7 @@ function MatchPredictionsPage() {
                 teamA={match.teamA}
                 teamB={match.teamB}
                 hasResult={!!match.result}
+                onClick={() => navigate(`/user/${myPrediction.userId}`)}
             />}
             {leagues.map(league => (
                 <LeaguePredictionSection key={league.id} league={league} match={match} />

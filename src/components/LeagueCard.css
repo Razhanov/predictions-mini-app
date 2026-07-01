@@ -6,6 +6,17 @@
     background: white;
     cursor: pointer;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.league-card:disabled {
+    cursor: wait;
+}
+
+.league-card-loading {
+    opacity: 0.75;
 }
 
 .league-header {

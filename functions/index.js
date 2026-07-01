@@ -14,6 +14,7 @@ import { CloudTasksClient } from '@google-cloud/tasks';
 import {region} from "firebase-functions/v1";
 const db = getFirestore();
 const tasksClient = new CloudTasksClient();
+const CURRENT_PUBLIC_LEAGUE_ID = "epl";
 
 export const onMatchResultUpdate = onDocumentUpdated(
     {
@@ -223,7 +224,7 @@ export const onJoinLeague = onDocumentCreated({
         return;
     }
     const league = leagueDoc.data();
-    const tournamentId = league.tournamentId || "epl";
+    const tournamentId = league.tournamentId || CURRENT_PUBLIC_LEAGUE_ID;
     const seasonId = await getActiveSeasonId(tournamentId);
 
     const standingRef = db.collection("standings").doc(`${tournamentId}_${seasonId}_${userId}`);
